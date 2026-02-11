@@ -5,4 +5,4 @@ I am also responsible for setting up the price tracker.
 
 3. I will build my cards this sprint by starting with the input calculations expanding on it and then moving to setup price tracker and doing the same. I expect to create 2 .java files one for each feature. Done looks like a fully complete application that has everything working. User input works, giving the proper calculations and a working price tracker that notifies the user.
 
-4. I can't think of any risks. 
+4. I can't think of any risks at this time.
