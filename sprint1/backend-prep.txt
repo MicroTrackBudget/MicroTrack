@@ -14,6 +14,7 @@ Start on part of Feature 2 which is working on the ability for user to input cal
 \f0\b \ul Setup Steps\
 
 \f1\b0 \ulnone Phoenix Code\
+VS Code\
 
 \f0\b \ul \
 Development Plan\
