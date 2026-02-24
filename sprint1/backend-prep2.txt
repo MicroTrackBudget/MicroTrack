@@ -1,8 +1,26 @@
-1. I am responsible for starting on the ability for the user to input calculations
-I am also responsible for setting up the price tracker.
+1. I am responsible for starting the backend for the input calculations feature and beginning setup for the price tracker feature.
+My goal for this sprint is to create the first working backend routes and prepare the structure for future features.
 
-2. I need to install vsCode.
+2. Tools and setup used:
+Install VS Code
+Install Node.js
+Install Express
 
-3. I will build my cards this sprint by starting with the input calculations expanding on it and then moving to setup price tracker and doing the same. I expect to create 2 .java files one for each feature. Done looks like a fully complete application that has everything working. User input works, giving the proper calculations and a working price tracker that notifies the user.
+3. Step 1: Create a backend server and add a test route to confirm it runs.
+Step 2: Build the input calculation route that accepts income and spending, checks for errors, and returns the remaining budget.
+Step 3: Begin setting up the structure for the price tracker feature.
 
-4. I can't think of any risks at this time.
+Files expected:
+server.js
+backend-prep.txt
+
+Done for this sprint means:
+Server runs locally
+One working backend endpoint exists
+Input calculations return correct results or error messages
+DB integration will be added after database schema is merged into main.
+
+4. Possible risks include:
+Learning new backend tools like Node.js and Express
+Making sure the backend connects properly with future frontend work
+Understanding how the price tracker will connect to the database later
