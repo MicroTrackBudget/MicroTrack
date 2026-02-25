@@ -1,0 +1,35 @@
+Trello Cards Owned:
+- Create tables and insert test data
+- Write core queries for feature 1
+- Write core queries for feature 2
+
+Setup:
+- Node.js
+- MySQL Server
+- MySQL Workbench
+- VS Code (to view SQL code)
+
+Development plan:
+1. Design and Create Database Tables
+	- Review requirements for Feature 1 and Feature 2
+	- Identify necessary tables, columns, primary keys, and relationships
+	- Write CREATE TABLE statements
+	- Execute statements in MySQL to create the schema
+
+2. Insert Test Data
+	- Write INSERT INTO statements for each table
+	- Ensure enough realistic test data exists to properly test both features
+	- Verify data using SELECT * queries
+
+3. Write Core Query for Feature 1
+	- Identify what data the feature needs
+	- Write and test the SQL query directly in MySQL first
+	- Integrate the query into the appropriate Express route in server.js
+
+4. Write Core Query for Feature 1
+	- Identify what data the feature needs
+	- Write and test the SQL query directly in MySQL first
+	- Integrate the query into the appropriate Express route in server.js
+
+Risks or questions:
+- Feature 1 or 2 may not need a query

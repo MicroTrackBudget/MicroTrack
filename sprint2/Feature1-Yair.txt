@@ -1,0 +1,55 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2821
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 Helvetica-Bold;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 As a team, each team member must define:\
+1. \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 This feature solves the problem of users not having a centralized way to track their budgets and monitor spending in real time.\
+\kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+2. User Story\
+\pard\pardeftab720\partightenfactor0
+\cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 As a user, I want to create and manage budgets so that I can track my spending and stay within my financial limits.\
+\kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+\cf0 3. Why this adds value to the project: \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 This feature is the \strokec2 core functionality\strokec2  of the application. Without it, the project would not fulfill its purpose of financial tracking.\
+
+\f1\b \kerning1\expnd0\expndtw0 \outl0\strokewidth0 \
+
+\f0\b0 4. What layers it touches:\
+\'95 UI\
+\'95 Backend\
+\'95 Database\
+\'95 External API if applicable\
+\
+1. Problem Statement\
+What problem does this solve? \
+This allows the user to track budgets and update their remaining balance. They are also able to add and delete expenses and even view their budget summary and expenses.\
+\
+2. User Flow\
+1) Create database in MySQLWorkbench\
+2) Write out backend code (Node)\
+3) Create html frontend code\
+4) Connect backend to database\
+5) Connect frontend to backend\
+\
+3. Technical Plan\
+Frontend changes: use javascript and create layout\
+Backend routes: valid user input\
+Database changes: create BudgetApp database \
+Files expected to be created or modified: server.js, feature1.html\
+\
+4. API Changes\
+New routes\
+Modified routes\
+Request and response structure\
+\
+5. Database Changes\
+New tables\
+Schema updates\
+New fields\
+}

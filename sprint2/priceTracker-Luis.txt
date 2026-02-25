@@ -1,0 +1,156 @@
+Price Tracking Feature
+- Allows user to enter an item they want to track the price, and see when it goes on sale.
+
+Importance: This is a main feature for our app, without it, are app will loose one key point.
+
+Layers:
+- Frontend (UI)
+- Backend
+- Database
+ 
+
+Problem Statement:
+
+Users often wait for products to drop below retail price before purchasing. Currently, the system stores product and price history data but does not notify users when a tracked item becomes cheaper than its retail price.
+
+This feature solves the problem of users manually checking prices and potentially missing good deals. The system will automatically compare the latest tracked price with the product’s retail price and notify the user when a price drop occurs.
+
+User Flow:
+
+Step 1: User logs into the system.
+
+Step 2: User selects "Track Product".
+
+Step 3: User enters:
+
+- Product name
+
+- Store location
+
+- Retail price
+
+Step 4: Product is saved to the Product table with retail price and user association.
+
+Step 5: A new price entry is inserted into the PriceHistory table whenever the product price changes.
+
+Step 6: After inserting a new price, the system:
+
+- Retrieves the latest price
+
+- Retrieves the retail price
+
+- Compares the two values
+
+Step 7: If latest price is lower than retail price:
+
+System triggers a price drop notification.
+
+Step 8: User views alert message in dashboard or console.
+
+Example alert:
+Price Drop Alert!
+Nike Hoodie is now $49.99 (Retail: $59.99)
+
+Technical Plan
+
+Frontend Changes:
+
+Add option to track a new product.
+
+Add input field for retail price.
+
+Add alert display section on user dashboard.
+
+Add menu option to view notifications.
+
+Backend Changes:
+
+Create PriceTrackerService class.
+
+Implement method to insert new price.
+
+Implement method to check for price drop.
+
+Trigger notification if condition is met.
+
+Files to be Created:
+
+PriceTrackerService.java
+
+ProductDAO.java
+
+PriceHistoryDAO.java
+
+Files to be Modified:
+
+Product.java
+
+Main.java or Controller class
+
+Database connection class (if necessary)
+
+API Changes
+
+New Route: POST /products
+Purpose: Create new tracked product.
+
+Request Body:
+{
+"product_name": "Nike Hoodie",
+"store_location": "Chicago",
+"retail_price": 59.99,
+"user_id": 1
+}
+
+Response:
+{
+"message": "Product created successfully",
+"product_id": 5
+}
+
+New Route: POST /price
+Purpose: Add new price entry.
+
+Request Body:
+{
+"product_id": 5,
+"price": 49.99
+}
+
+Response:
+{
+"message": "Price recorded",
+"price_drop": true
+}
+
+New Route: GET /alerts/{user_id}
+Purpose: Retrieve all active price drop alerts for a user.
+
+Response:
+[
+{
+"product_name": "Nike Hoodie",
+"retail_price": 59.99,
+"current_price": 49.99
+}
+]
+
+Database Changes
+
+Schema Updates:
+
+Modify Product table to include:
+
+retail_price DECIMAL(10,2) NOT NULL
+
+user_id INT NOT NULL (Foreign Key to Users)
+
+Optional Field:
+
+notified BOOLEAN DEFAULT FALSE
+
+Purpose of notified field:
+Prevents duplicate notifications if price remains below retail.
+
+No new tables required.
+Existing PriceHistory table will be used to store historical price data.
