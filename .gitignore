@@ -1,2 +1,7 @@
-.DS_Store
+# Node modules
 node_modules/
+.DS_Store
+
+# NPM package files
+package-lock.json
+package.json

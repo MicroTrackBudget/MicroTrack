@@ -145,6 +145,10 @@ app.delete('/transaction/:id', (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.send('Welcome to the Budget App API');
+});
+
 // START SERVER
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
