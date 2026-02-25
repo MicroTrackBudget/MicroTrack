@@ -3,7 +3,7 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 3000;
+const port = 3000;
 
 app.use(bodyParser.json());
 
@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'yairlopez1819!', // add your MySQL password
+  password: 'yairlopez1819!', // MySQL password
   database: 'BudgetApp'
 });
 
@@ -146,4 +146,6 @@ app.delete('/transaction/:id', (req, res) => {
 });
 
 // START SERVER
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
