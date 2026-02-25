@@ -7,11 +7,11 @@ const PORT = 3000;
 
 app.use(bodyParser.json());
 
-// ----- DATABASE CONNECTION -----
+// DATABASE CONNECTION 
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: '', // add your MySQL password
+  password: 'yairlopez1819!', // add your MySQL password
   database: 'BudgetApp'
 });
 
@@ -23,7 +23,7 @@ db.connect(err => {
   console.log('Connected to MySQL Database');
 });
 
-// ----- ROUTES -----
+//  ROUTES 
 
 // POST /register
 app.post('/register', (req, res) => {
