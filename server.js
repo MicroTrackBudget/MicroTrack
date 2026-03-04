@@ -1,17 +1,22 @@
 const express = require('express');
 const mysql = require('mysql2');
-const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
 const port = 3000;
 
-app.use(bodyParser.json());
+// Built-in JSON parser
+app.use(express.json());
+
+// Serve frontend files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // DATABASE CONNECTION
+
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'yairlopez1819!', // MySQL password
+  password: 'yairlopez1819!', 
   database: 'BudgetApp'
 });
 
@@ -23,178 +28,196 @@ db.connect(err => {
   console.log('Connected to MySQL Database');
 });
 
-//  ROUTES
+// AUTH ROUTES
 
-// POST /register
+// Register
 app.post('/register', (req, res) => {
   const { username, email, password } = req.body;
-  if (!username || !email || !password) return res.status(400).json({ error: 'All fields required' });
+  if (!username || !email || !password)
+    return res.status(400).json({ error: 'All fields required' });
 
   const query = 'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)';
+
   db.query(query, [username, email, password], (err, result) => {
     if (err) {
-      if (err.code === 'ER_DUP_ENTRY') return res.status(409).json({ error: 'Email already exists' });
+      if (err.code === 'ER_DUP_ENTRY')
+        return res.status(409).json({ error: 'Email already exists' });
       return res.status(500).json({ error: 'Database error' });
     }
     res.status(201).json({ message: 'User registered', userId: result.insertId });
   });
 });
 
-// POST /login
+// Login
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+  if (!email || !password)
+    return res.status(400).json({ error: 'Email and password required' });
 
   const query = 'SELECT * FROM Users WHERE email = ? AND password = ?';
+
   db.query(query, [email, password], (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
-    if (results.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
+    if (results.length === 0)
+      return res.status(401).json({ error: 'Invalid credentials' });
+
     res.json({ message: 'Login successful', user: results[0] });
   });
 });
 
-// POST /createBudget
-app.post('/createBudget', (req, res) => {
-  const { budget_name, monthly_limit, weekly_limit, user_id, category_id, start_date, end_date } = req.body;
-  if (!budget_name || !monthly_limit || !weekly_limit || !user_id || !category_id || !start_date || !end_date)
-    return res.status(400).json({ error: 'All fields required' });
 
-  if (monthly_limit <= 0) return res.status(400).json({ error: 'Monthly limit must be greater than 0' });
+// BUDGET ROUTES
+
+// Create Budget
+app.post('/createBudget', (req, res) => {
+  const {
+    budget_name,
+    monthly_limit,
+    weekly_limit,
+    user_id,
+    category_id,
+    start_date,
+    end_date
+  } = req.body;
+
+  if (!budget_name || !monthly_limit || !user_id)
+    return res.status(400).json({ error: 'Missing required fields' });
+
+  if (monthly_limit <= 0)
+    return res.status(400).json({ error: 'Monthly limit must be greater than 0' });
 
   const query = `
-  INSERT INTO Budget
-  (budget_name, monthly_limit, weekly_limit, user_id, category_id, start_date, end_date, remaining_amount)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    INSERT INTO Budget
+    (budget_name, monthly_limit, weekly_limit, user_id, category_id, start_date, end_date, remaining_amount)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
-  db.query(query, [budget_name, monthly_limit, weekly_limit, user_id, category_id, start_date, end_date, monthly_limit], (err, result) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    res.status(201).json({ message: 'Budget created', budgetId: result.insertId, remaining_amount: monthly_limit });
-  });
-});
+  db.query(
+    query,
+    [
+      budget_name,
+      monthly_limit,
+      weekly_limit || 0,
+      user_id,
+      category_id || 1,
+      start_date,
+      end_date,
+      monthly_limit
+    ],
+    (err, result) => {
+      if (err) return res.status(500).json({ error: 'Database error' });
 
-// POST /addExpense
-app.post('/addExpense', (req, res) => {
-  const { budget_id, expense_amount, description } = req.body;
-  if (!budget_id || !expense_amount || expense_amount <= 0) return res.status(400).json({ error: 'Invalid input' });
-
-  // 1. Find budget
-  const findBudget = 'SELECT remaining_amount, user_id, category_id FROM Budget WHERE budget_id = ?';
-  db.query(findBudget, [budget_id], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    if (results.length === 0) return res.status(404).json({ error: 'Budget not found' });
-
-    const { remaining_amount, user_id, category_id } = results[0];
-    if (expense_amount > remaining_amount) return res.status(400).json({ error: 'Budget exceeded' });
-
-    const newRemaining = remaining_amount - expense_amount;
-
-    // 2. Insert transaction
-    const insertTransaction = 'INSERT INTO Transactions (transaction_amount, transaction_date, user_id, category_id) VALUES (?, NOW(), ?, ?)';
-    db.query(insertTransaction, [expense_amount, user_id, category_id], (err2) => {
-      if (err2) return res.status(500).json({ error: 'Database error' });
-
-      // 3. Update remaining_amount
-      const updateBudget = 'UPDATE Budget SET remaining_amount = ? WHERE budget_id = ?';
-      db.query(updateBudget, [newRemaining, budget_id], (err3) => {
-        if (err3) return res.status(500).json({ error: 'Database error' });
-        res.json({ message: 'Expense added', remaining_amount: newRemaining });
+      res.status(201).json({
+        message: 'Budget created',
+        budgetId: result.insertId
       });
-    });
-  });
+    }
+  );
 });
 
-// GET /budgets/:userId
+// Get User Budgets
 app.get('/budgets/:userId', (req, res) => {
   const { userId } = req.params;
-  const query = 'SELECT * FROM Budget WHERE user_id = ?';
-  db.query(query, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    res.json(results);
-  });
+
+  db.query(
+    'SELECT * FROM Budget WHERE user_id = ?',
+    [userId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: 'Database error' });
+      res.json(results);
+    }
+  );
 });
 
-// GET /transactions/:userId
-app.get('/transactions/:userId', (req, res) => {
-  const { userId } = req.params;
-  const query = 'SELECT * FROM Transactions WHERE user_id = ?';
-  db.query(query, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    res.json(results);
-  });
+// Delete Budget 
+app.delete('/budget/:id', (req, res) => {
+  const { id } = req.params;
+
+  db.query(
+    'DELETE FROM Budget WHERE budget_id = ?',
+    [id],
+    (err) => {
+      if (err) return res.status(500).json({ error: 'Database error' });
+      res.json({ message: 'Budget deleted' });
+    }
+  );
 });
 
-// GET /budgetSummary/:budgetId
-app.get('/budgetSummary/:budgetId', (req, res) => {
-  const { budgetId } = req.params;
 
-  // 1. Pull budget data
-  const budgetQuery = 'SELECT * FROM Budget WHERE budget_id = ?';
+// TRANSACTION ROUTES
 
-  db.query(budgetQuery, [budgetId], (err, budgetResults) => {
-    if (err) return res.status(500).json({ error: 'Budget action could not be completed.' });
+// Add Expense
+app.post('/addExpense', (req, res) => {
+  const { budget_id, expense_amount, description } = req.body;
 
-    if (budgetResults.length === 0)
-      return res.status(404).json({ error: 'Budget action could not be completed.' });
+  if (!budget_id || !expense_amount || expense_amount <= 0)
+    return res.status(400).json({ error: 'Invalid input' });
 
-    const budget = budgetResults[0];
+  const findBudget = `
+    SELECT remaining_amount, user_id, category_id, monthly_limit
+    FROM Budget WHERE budget_id = ?
+  `;
 
-    const { user_id, category_id, monthly_limit } = budget;
+  db.query(findBudget, [budget_id], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    if (results.length === 0)
+      return res.status(404).json({ error: 'Budget not found' });
 
-    // 2. Pull all expenses (Transactions) linked by user_id and category_id
-    const transactionQuery = `
-      SELECT * FROM Transactions
-      WHERE user_id = ? AND category_id = ?
+    const budget = results[0];
+
+    if (expense_amount > budget.remaining_amount)
+      return res.status(400).json({ error: 'Budget exceeded' });
+
+    const newRemaining = budget.remaining_amount - expense_amount;
+
+    const insertTransaction = `
+      INSERT INTO Transactions
+      (transaction_amount, transaction_date, user_id, category_id)
+      VALUES (?, NOW(), ?, ?)
     `;
 
-    db.query(transactionQuery, [user_id, category_id], (err2, transactionResults) => {
-      if (err2) return res.status(500).json({ error: 'Budget action could not be completed.' });
+    db.query(
+      insertTransaction,
+      [expense_amount, budget.user_id, budget.category_id],
+      (err2) => {
+        if (err2) return res.status(500).json({ error: 'Database error' });
 
-      // 3. Calculate total spent
-      const totalSpent = transactionResults.reduce((sum, t) => {
-        return sum + parseFloat(t.transaction_amount);
-      }, 0);
+        db.query(
+          'UPDATE Budget SET remaining_amount = ? WHERE budget_id = ?',
+          [newRemaining, budget_id],
+          (err3) => {
+            if (err3) return res.status(500).json({ error: 'Database error' });
 
-      // 4. Calculate remaining amount
-      const remainingAmount = monthly_limit - totalSpent;
-
-      // 5. Return summary
-      res.json({
-        budget_id: budget.budget_id,
-        total_amount: monthly_limit,
-        total_spent: totalSpent,
-        remaining_amount: remainingAmount,
-        expenses: transactionResults
-      });
-    });
+            res.json({
+              message: 'Expense added',
+              remaining_amount: newRemaining
+            });
+          }
+        );
+      }
+    );
   });
 });
 
-// PUT /transaction/:id
-app.put('/transaction/:id', (req, res) => {
-  const { id } = req.params;
-  const { transaction_amount, transaction_date, category_id } = req.body;
-  const query = 'UPDATE Transactions SET transaction_amount = ?, transaction_date = ?, category_id = ? WHERE transaction_id = ?';
-  db.query(query, [transaction_amount, transaction_date, category_id, id], (err) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    res.json({ message: 'Transaction updated' });
-  });
-});
+// Get Transactions
+app.get('/transactions/:userId', (req, res) => {
+  const { userId } = req.params;
 
-// DELETE /transaction/:id
-app.delete('/transaction/:id', (req, res) => {
-  const { id } = req.params;
-  const query = 'DELETE FROM Transactions WHERE transaction_id = ?';
-  db.query(query, [id], (err) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    res.json({ message: 'Transaction deleted' });
-  });
+  db.query(
+    'SELECT * FROM Transactions WHERE user_id = ?',
+    [userId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: 'Database error' });
+      res.json(results);
+    }
+  );
 });
 
 app.get('/', (req, res) => {
-  res.send('Welcome to the Budget App API');
+  res.sendFile(path.join(__dirname, 'public', 'yairBudget.html'));
 });
 
-// START SERVER
+//START SERVER
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
