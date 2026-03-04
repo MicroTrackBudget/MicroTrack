@@ -7,7 +7,7 @@ const port = 3000;
 
 app.use(bodyParser.json());
 
-// DATABASE CONNECTION 
+// DATABASE CONNECTION
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -23,7 +23,7 @@ db.connect(err => {
   console.log('Connected to MySQL Database');
 });
 
-//  ROUTES 
+//  ROUTES
 
 // POST /register
 app.post('/register', (req, res) => {
@@ -62,10 +62,9 @@ app.post('/createBudget', (req, res) => {
   if (monthly_limit <= 0) return res.status(400).json({ error: 'Monthly limit must be greater than 0' });
 
   const query = `
-    INSERT INTO Budget 
-    (budget_name, monthly_limit, weekly_limit, user_id, category_id, start_date, end_date, remaining_amount)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  INSERT INTO Budget
+  (budget_name, monthly_limit, weekly_limit, user_id, category_id, start_date, end_date, remaining_amount)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
 
   db.query(query, [budget_name, monthly_limit, weekly_limit, user_id, category_id, start_date, end_date, monthly_limit], (err, result) => {
     if (err) return res.status(500).json({ error: 'Database error' });
@@ -121,6 +120,52 @@ app.get('/transactions/:userId', (req, res) => {
   db.query(query, [userId], (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
     res.json(results);
+  });
+});
+
+// GET /budgetSummary/:budgetId
+app.get('/budgetSummary/:budgetId', (req, res) => {
+  const { budgetId } = req.params;
+
+  // 1. Pull budget data
+  const budgetQuery = 'SELECT * FROM Budget WHERE budget_id = ?';
+
+  db.query(budgetQuery, [budgetId], (err, budgetResults) => {
+    if (err) return res.status(500).json({ error: 'Budget action could not be completed.' });
+
+    if (budgetResults.length === 0)
+      return res.status(404).json({ error: 'Budget action could not be completed.' });
+
+    const budget = budgetResults[0];
+
+    const { user_id, category_id, monthly_limit } = budget;
+
+    // 2. Pull all expenses (Transactions) linked by user_id and category_id
+    const transactionQuery = `
+      SELECT * FROM Transactions
+      WHERE user_id = ? AND category_id = ?
+    `;
+
+    db.query(transactionQuery, [user_id, category_id], (err2, transactionResults) => {
+      if (err2) return res.status(500).json({ error: 'Budget action could not be completed.' });
+
+      // 3. Calculate total spent
+      const totalSpent = transactionResults.reduce((sum, t) => {
+        return sum + parseFloat(t.transaction_amount);
+      }, 0);
+
+      // 4. Calculate remaining amount
+      const remainingAmount = monthly_limit - totalSpent;
+
+      // 5. Return summary
+      res.json({
+        budget_id: budget.budget_id,
+        total_amount: monthly_limit,
+        total_spent: totalSpent,
+        remaining_amount: remainingAmount,
+        expenses: transactionResults
+      });
+    });
   });
 });
 
