@@ -1,0 +1,6 @@
+mysql-connector-j-9.6.0/
+.env
+node_modules/
+*.class
+*.jar
+.DS_Store
