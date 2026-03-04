@@ -4,3 +4,4 @@ node_modules/
 *.class
 *.jar
 .DS_Store
+sprint2/node_modules/

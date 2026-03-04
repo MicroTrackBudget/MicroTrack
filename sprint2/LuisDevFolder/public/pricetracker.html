@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MicroTrack - Price Tracker</title>
+    <link rel="stylesheet" href="appstyles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="status-bar">
+                    <span id="currentTime"></span>
+                    <span onclick="logout()" title="Logout" style="cursor: pointer;">●●●</span>
+                </div>
+
+                <div class="header">Price Tracker</div>
+
+                <div class="content">
+                    <div class="alert-box" id="priceAlert">
+                        🎉 <span id="alertText"></span>
+                    </div>
+
+                    <div class="section-title">Tracked Items</div>
+                    <div id="trackedItemsList">
+                        <div style="text-align: center; padding: 40px 20px; color: #999;">
+                            <p style="font-size: 48px;">🏷️</p>
+                            <p>No items tracked yet!</p>
+                            <p style="font-size: 13px;">Click "Add Item to Track" to start monitoring prices</p>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Price Alerts</div>
+                    <div class="budget-card">
+                        <div class="budget-header">
+                            <span>Alert Settings</span>
+                            <label class="switch">
+                                <input type="checkbox" id="alertToggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="budget-list-details">
+                            Get notified when prices drop by 
+                            <input type="number" id="alertPercentage" value="5" min="1" max="100" style="width: 50px;">% or more
+                        </div>
+                    </div>
+
+                    <div class="budget-card">
+                        <div class="budget-header">
+                            <span>Auto-Update Prices</span>
+                            <label class="switch">
+                                <input type="checkbox" id="autoUpdateToggle" checked>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="budget-list-details">
+                            Automatically check for price updates every 24 hours
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="openModal()">Add Item to Track</button>
+                </div>
+
+                <div class="add-button" onclick="openModal()">+</div>
+
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <a href="home.html" class="nav-icon">Home</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="addpurchase.html" class="nav-icon">Add</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="budget.html" class="nav-icon">Budgets</a>
+                    </div>
+                    <div class="nav-item active">
+                        <a href="pricetracker.html" class="nav-icon">Prices</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                Add Item to Track
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="itemForm">
+                <div class="form-group">
+                    <label class="form-label">Item Name or UPC/Barcode</label>
+                    <input type="text" class="form-input" id="itemName" placeholder="e.g., iPhone 15 Pro or 123456789" required>
+                    <small style="font-size: 11px; color: #999;">Enter a product name or scan/enter a UPC code</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Product URL (Mandatory)</label>
+                    <input type="url" class="form-input" id="productUrl" placeholder="https://amazon.com/product-link" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Store / Retailer</label>
+                    <select class="form-select" id="store" required>
+                        <option value="">Select store</option>
+                        <option value="Amazon">Amazon</option>
+                        <option value="Best Buy">Best Buy</option>
+                        <option value="Walmart">Walmart</option>
+                        <option value="Target">Target</option>
+                        <option value="Apple Store">Apple Store</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="customStoreGroup" style="display: none;">
+                    <label class="form-label">Store Name</label>
+                    <input type="text" class="form-input" id="customStore" placeholder="Enter store name">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Target Price (Optional)</label>
+                    <input type="number" class="form-input" id="targetPrice" placeholder="0.00" step="0.01" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="autoUpdate" checked style="margin-right: 8px;">
+                        <span style="font-size: 13px;">Enable automatic price updates</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary">Start Tracking</button>
+                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="pricetracker.js"></script>
+</body>
+</html>
