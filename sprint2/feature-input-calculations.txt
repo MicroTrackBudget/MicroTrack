@@ -1,0 +1,30 @@
+1. Problem Statement
+This solves the problem of users not having a clear way to track progress toward a savings goal. Without it the budgeting app would not be able to show how much money the user still needs to save.
+
+2. User Flow
+The user enters the Savings Goal page. They then enter their goal name, target amount, and saved amount, the application then outputs how much they still need to save. Letting them know how much is left to reach the goal. The user can then save and load the result with a click of a button.
+
+3. Technical Plan
+Frontend: Adds one text input, two number inputs, and two buttons.
+Shows remaining goal amount and error messages.
+Calls the backend routes below.
+
+Backend: Adds routes for calculate, save, and latest.
+Validates inputs and computes target amount minus saved amount.
+Saves and loads entries from the database.
+
+4. API Changes
+POST /api/savings/calculate. This takes targetAmount and savedAmount and returns remainingGoal.
+POST /api/savings/save. This takes goalName, targetAmount, and savedAmount and saves the entry.
+GET /api/savings/latest. This returns the newest saved entry.
+
+5. Database Changes
+Create SavingsGoal table.
+Fields: goal_id, goal_name, target_amount, saved_amount, remaining_goal, and created_at.
+
+6. Acceptance Criteria
+The user can calculate the remaining amount needed for a savings goal.
+The user can save a savings goal entry.
+Refreshing shows the latest saved entry.
+An invalid input shows an error.
+It should work without any other feature.
