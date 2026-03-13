@@ -3,12 +3,15 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 app.use(cors());
+
+require("dotenv").config();
+
 const pool = mysql.createPool({
- host: "localhost",
- user: "root",
- password: "PASSWORD",
- database: "BudgetApp",
- port: 3306,
+  host: "localhost",
+  user: "root",
+  password: process.env.DB_PASSWORD,
+  database: "BudgetApp",
+  port: 3306,
 });
 
 
