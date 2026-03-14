@@ -3,7 +3,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 // Replace with your real ScrapingBee API key
-const SCRAPINGBEE_API_KEY = 'JRIM6BO87GOUTR7WU0RO1AVXDKAH9TOAB6LN4YFDA1IMF2OP5WGC7ZL579VPCHJKE96T1VEWZNA23WEL';
+const SCRAPINGBEE_API_KEY = 'API_KEY_GOES_HERE';
 
 /**
  * Get Walmart product price from URL
