@@ -78,6 +78,6 @@ app.post("/budget/savings", async (req, res) => {
 });
 
 
-app.listen(3000, () => {
- console.log("Server running on port 3000: http://localhost:3000/test");
+app.listen(3001, () => {
+ console.log("Server running on port 3001: http://localhost:3001/test");
 });
