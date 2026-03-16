@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBud - Price Tracker</title>
+    <link rel="stylesheet" href="appstyles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="status-bar">
+                    <span id="currentTime"></span>
+                    <span style="cursor: pointer;" onclick="logout()" title="Logout">●●●</span>
+                </div>
+                
+                <div class="header">
+                    Price Tracker
+                </div>
+                
+                <div class="content" style="padding-bottom: 80px;">
+                    <div class="alert-box" id="priceAlert" style="display: none; background: #E8F5E9; border-left: 4px solid #4CAF50;">
+                        🎉 <span id="alertText"></span>
+                    </div>
+                    
+                    <div class="section-title">Tracked Items</div>
+                    
+                    <div id="trackedItemsList">
+                        <div style="text-align: center; padding: 40px 20px; color: #999;">
+                            <p style="font-size: 48px; margin-bottom: 10px;">🏷️</p>
+                            <p>No items tracked yet!</p>
+                            <p style="font-size: 13px; margin-top: 10px;">Click "Add Item to Track" to start monitoring prices</p>
+                        </div>
+                    </div>
+                    
+                    <div class="section-title" style="margin-top: 30px;">Price Alerts</div>
+                    
+                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 600;">Alert Settings</span>
+                            <label style="position: relative; display: inline-block; width: 40px; height: 20px;">
+                                <input type="checkbox" id="alertToggle" style="opacity: 0; width: 0; height: 0;">
+                                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4CAF50; border-radius: 20px; transition: 0.4s;" id="toggleSlider">
+                                    <span style="position: absolute; content: ''; height: 16px; width: 16px; right: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: 0.4s;" id="toggleCircle"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <div style="font-size: 12px; color: #666;">
+                            Get notified when prices drop by <input type="number" id="alertPercentage" value="5" min="1" max="100" style="width: 50px; border: 1px solid #e0e0e0; border-radius: 4px; padding: 2px 4px;">% or more
+                        </div>
+                    </div>
+                    
+                    <div style="background: white; border: 2px solid #e0e0e0; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-weight: 600;">Auto-Update Prices</span>
+                            <label style="position: relative; display: inline-block; width: 40px; height: 20px;">
+                                <input type="checkbox" id="autoUpdateToggle" checked style="opacity: 0; width: 0; height: 0;">
+                                <span style="position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #4CAF50; border-radius: 20px; transition: 0.4s;" id="autoUpdateSlider">
+                                    <span style="position: absolute; content: ''; height: 16px; width: 16px; right: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: 0.4s;" id="autoUpdateCircle"></span>
+                                </span>
+                            </label>
+                        </div>
+                        <div style="font-size: 12px; color: #666;">
+                            Automatically check for price updates every 24 hours
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary" onclick="openModal()">Add Item to Track</button>
+                </div>
+                
+                <div class="add-button" onclick="openModal()">+</div>
+                
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <a href="home.html" class="nav-icon">Home</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="addpurchase.html" class="nav-icon">Add</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="budget.html" class="nav-icon">Budgets</a>
+                    </div>
+                    <div class="nav-item active">
+                        <a href="pricetracker.html" class="nav-icon">Prices</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!--Item Modal-->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                Add Item to Track
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            
+            <form id="itemForm">
+                <div class="form-group">
+                    <label class="form-label">Item Name or UPC/Barcode</label>
+                    <input type="text" class="form-input" id="itemName" placeholder="e.g., iPhone 15 Pro or 123456789" required>
+                    <small style="font-size: 11px; color: #999;">Enter a product name or scan/enter a UPC code</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Product URL (Optional)</label>
+                    <input type="url" class="form-input" id="productUrl" placeholder="https://amazon.com/product-link">
+                    <small style="font-size: 11px; color: #999;">Paste a link from Amazon, Best Buy, etc. for auto-updates</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Store / Retailer</label>
+                    <select class="form-select" id="store" required>
+                        <option value="">Select store</option>
+                        <option value="Amazon">Amazon</option>
+                        <option value="Best Buy">Best Buy</option>
+                        <option value="Walmart">Walmart</option>
+                        <option value="Target">Target</option>
+                        <option value="Apple Store">Apple Store</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" id="customStoreGroup" style="display: none;">
+                    <label class="form-label">Store Name</label>
+                    <input type="text" class="form-input" id="customStore" placeholder="Enter store name">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Current Price ($)</label>
+                    <input type="number" class="form-input" id="currentPrice" placeholder="0.00" step="0.01" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Target Price (Optional)</label>
+                    <input type="number" class="form-input" id="targetPrice" placeholder="0.00" step="0.01" min="0">
+                    <small style="font-size: 11px; color: #999;">Get alerted when price drops to this amount</small>
+                </div>
+                
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="autoUpdate" checked style="margin-right: 8px;">
+                        <span style="font-size: 13px;">Enable automatic price updates</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn-primary">Start Tracking</button>
+                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+            </form>
+        </div>
+            </div>
+    
+            <script>
+        //Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+        
+        //Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('userEmail');
+                localStorage.removeItem('userName');
+                window.location.href = 'index.html';
+            }
+        }
+        
+        //Check if user is logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+        
+        //Show custom store input when "Other" is selected
+        document.getElementById('store').addEventListener('change', function() {
+            const customGroup = document.getElementById('customStoreGroup');
+            if (this.value === 'Other') {
+                customGroup.style.display = 'block';
+                document.getElementById('customStore').required = true;
+            } else {
+                customGroup.style.display = 'none';
+                document.getElementById('customStore').required = false;
+            }
+        });
+        
+        function openModal() {
+            document.getElementById('itemModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('itemModal').classList.remove('active');
+            document.getElementById('itemForm').reset();
+            document.getElementById('customStoreGroup').style.display = 'none';
+        }
+        
+        function deleteItem(itemId) {
+            if (confirm('Are you sure you want to stop tracking this item?')) {
+                let items = JSON.parse(localStorage.getItem('trackedItems') || '[]');
+                items = items.filter(item => item.id !== itemId);
+                localStorage.setItem('trackedItems', JSON.stringify(items));
+                loadTrackedItems();
+            }
+        }
+        
+        //Simulate fetching price from API (connect to real APIs in production)
+        async function fetchPriceUpdate(item) {
+            // Placeholder for API integration
+            // In production: Amazon Product API, web scraping, UPC lookup, etc.
+            const changePercent = (Math.random() - 0.5) * 10; // -5% to +5%
+            const newPrice = item.currentPrice * (1 + changePercent / 100);
+            return Math.max(0, newPrice);
+        }
+        
+        async function updatePrice(itemId, manual = false) {
+            let items = JSON.parse(localStorage.getItem('trackedItems') || '[]');
+            const item = items.find(i => i.id === itemId);
+            
+            if (!item) return;
+            
+            if (manual) {
+                const newPrice = prompt('Enter new price:', item.currentPrice);
+                if (newPrice && !isNaN(newPrice)) {
+                    updateItemPrice(item, parseFloat(newPrice), items);
+                }
+            } else {
+                const newPrice = await fetchPriceUpdate(item);
+                updateItemPrice(item, newPrice, items);
+            }
+        }
+        
+        function updateItemPrice(item, newPrice, items) {
+            const oldPrice = item.currentPrice;
+            const priceDiff = oldPrice - newPrice;
+            const percentChange = ((priceDiff / oldPrice) * 100).toFixed(1);
+            
+            item.priceHistory = item.priceHistory || [];
+            item.priceHistory.push({ price: oldPrice, date: new Date().toISOString() });
+            
+            item.currentPrice = newPrice;
+            item.lastUpdated = new Date().toISOString();
+            item.lastChange = {
+                amount: priceDiff,
+                percent: percentChange,
+                direction: priceDiff > 0 ? 'down' : 'up'
+            };
+            
+            localStorage.setItem('trackedItems', JSON.stringify(items));
+            
+            //Check for price drop alert
+            const alertThreshold = parseFloat(document.getElementById('alertPercentage').value || 5);
+            if (priceDiff > 0 && Math.abs(percentChange) >= alertThreshold) {
+                alert(`🎉 ${item.name} dropped by ${Math.abs(percentChange)}%!\nOld: $${oldPrice.toFixed(2)} → New: $${newPrice.toFixed(2)}`);
+            }
+            
+            loadTrackedItems();
+        }
+        
+        //Auto-update all items
+        async function autoUpdateAllPrices() {
+            const autoUpdateEnabled = document.getElementById('autoUpdateToggle').checked;
+            if (!autoUpdateEnabled) return;
+            
+            const items = JSON.parse(localStorage.getItem('trackedItems') || '[]');
+            const autoUpdateItems = items.filter(item => item.autoUpdate);
+            
+            for (const item of autoUpdateItems) {
+                await updatePrice(item.id, false);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        //Check for auto-updates every hour
+        setInterval(autoUpdateAllPrices, 3600000);
+        
+        function loadTrackedItems() {
+            const items = JSON.parse(localStorage.getItem('trackedItems') || '[]');
+            const list = document.getElementById('trackedItemsList');
+            
+            if (items.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #999;">
+                        <p style="font-size: 48px; margin-bottom: 10px;">🏷️</p>
+                        <p>No items tracked yet!</p>
+                        <p style="font-size: 13px; margin-top: 10px;">Click "Add Item to Track" to start monitoring prices</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            list.innerHTML = '';
+            let droppedCount = 0;
+            
+            items.forEach(item => {
+                const hasDropped = item.targetPrice && item.currentPrice <= item.targetPrice;
+                if (hasDropped) droppedCount++;
+                
+                const timeSince = getTimeSince(item.lastUpdated);
+                const lastChange = item.lastChange || null;
+                
+                let changeHTML = '';
+                if (lastChange) {
+                    const changeClass = lastChange.direction === 'down' ? 'price-down' : 'price-up';
+                    const arrow = lastChange.direction === 'down' ? '↓' : '↑';
+                    changeHTML = `<span class="price-change ${changeClass}">${arrow} ${Math.abs(lastChange.percent)}%</span>`;
+                }
+                
+                const itemCard = `
+                    <div class="budget-list-item" style="${hasDropped ? 'border-left: 4px solid #4CAF50;' : ''}">
+                        <div class="budget-list-info">
+                            <h3>${item.name} ${item.autoUpdate ? '<span class="auto-update-badge">AUTO</span>' : ''}</h3>
+                            <div class="budget-list-details">
+                                ${item.store} • Updated ${timeSince}
+                                ${changeHTML}
+                            </div>
+                            ${hasDropped ? `<div style="margin-top: 8px; font-size: 13px; color: #4CAF50; font-weight: 600;">🎯 Target price reached!</div>` : ''}
+                            ${item.productUrl ? `<div style="margin-top: 5px;"><a href="${item.productUrl}" target="_blank" style="font-size: 11px; color: #4CAF50;">View Product</a></div>` : ''}
+                        </div>
+                        <div class="budget-list-amount">
+                            <div class="amount-spent" style="${hasDropped ? 'color: #4CAF50;' : ''}">$${item.currentPrice.toFixed(2)}</div>
+                            ${item.targetPrice ? `<div class="amount-limit">Target: $${item.targetPrice.toFixed(2)}</div>` : '<div class="amount-limit">No target</div>'}
+                            <div style="margin-top: 8px; display: flex; gap: 5px;">
+                                <button onclick="updatePrice(${item.id}, true)" style="padding: 4px 8px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Update</button>
+                                <button onclick="deleteItem(${item.id})" style="padding: 4px 8px; background: #F44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.innerHTML += itemCard;
+            });
+            
+            if (droppedCount > 0) {
+                document.getElementById('priceAlert').style.display = 'block';
+                document.getElementById('alertText').textContent = `${droppedCount} item${droppedCount > 1 ? 's' : ''} on your watchlist reached target price!`;
+            }
+        }
+        
+        function getTimeSince(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return Math.floor(seconds / 60) + ' mins ago';
+            if (seconds < 86400) return Math.floor(seconds / 3600) + ' hrs ago';
+            return Math.floor(seconds / 86400) + ' days ago';
+        }
+        
+        //Handle form submission
+        document.getElementById('itemForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const storeName = document.getElementById('store').value === 'Other' 
+                ? document.getElementById('customStore').value 
+                : document.getElementById('store').value;
+            
+            const item = {
+                id: Date.now(),
+                name: document.getElementById('itemName').value,
+                store: storeName,
+                productUrl: document.getElementById('productUrl').value || null,
+                currentPrice: parseFloat(document.getElementById('currentPrice').value),
+                targetPrice: document.getElementById('targetPrice').value ? parseFloat(document.getElementById('targetPrice').value) : null,
+                autoUpdate: document.getElementById('autoUpdate').checked,
+                priceHistory: [],
+                lastUpdated: new Date().toISOString(),
+                created: new Date().toISOString()
+            };
+            
+            const items = JSON.parse(localStorage.getItem('trackedItems') || '[]');
+            items.push(item);
+            localStorage.setItem('trackedItems', JSON.stringify(items));
+            
+            closeModal();
+            loadTrackedItems();
+            alert('✅ Item added to tracking!' + (item.autoUpdate ? ' Auto-updates enabled.' : ''));
+        });
+        
+        //Toggle alert settings
+        document.getElementById('alertToggle').addEventListener('change', function() {
+            const isEnabled = this.checked;
+            localStorage.setItem('priceAlertsEnabled', isEnabled);
+            alert(isEnabled ? '✅ Price alerts enabled!' : '❌ Price alerts disabled');
+        });
+        
+        //Toggle auto-update
+        document.getElementById('autoUpdateToggle').addEventListener('change', function() {
+            const isEnabled = this.checked;
+            localStorage.setItem('autoUpdateEnabled', isEnabled);
+            alert(isEnabled ? '✅ Auto-update enabled!' : '❌ Auto-update disabled');
+        });
+        
+        //Load settings
+        document.getElementById('alertToggle').checked = localStorage.getItem('priceAlertsEnabled') === 'true';
+        document.getElementById('autoUpdateToggle').checked = localStorage.getItem('autoUpdateEnabled') !== 'false';
+        
+        //Load tracked items
+        loadTrackedItems();
+        
+        //Run auto-update on page load if enabled
+        if (document.getElementById('autoUpdateToggle').checked) {
+            setTimeout(autoUpdateAllPrices, 2000);
+        }
+    </script>
+</body>
+</html>
