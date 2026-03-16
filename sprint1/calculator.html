@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBud - Calculator</title>
+    <link rel="stylesheet" href="appstyles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="status-bar">
+                    <span id="currentTime"></span>
+                    <div class="menu-wrapper">
+                        <span class="menu-dots" onclick="toggleMenu()">●●●</span>
+                        <div class="menu-dropdown" id="menuDropdown">
+                            <div onclick="logout()">Logout</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header">Calculator</div>
+
+                <div class="content" style="padding-bottom: 80px;">
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button id="tab-budget" onclick="switchTab('budget')"
+                            style="flex:1; padding:10px; border-radius:8px; border:2px solid #4CAF50;
+                                   background:#4CAF50; color:white; font-weight:bold; cursor:pointer; font-size:13px;">
+                            Budget
+                        </button>
+                        <button id="tab-savings" onclick="switchTab('savings')"
+                            style="flex:1; padding:10px; border-radius:8px; border:2px solid #4CAF50;
+                                   background:white; color:#4CAF50; font-weight:bold; cursor:pointer; font-size:13px;">
+                            Savings Goal
+                        </button>
+                    </div>
+
+                    <!-- BUDGET CALCULATOR -->
+                    <div id="panel-budget">
+                        <div class="budget-card">
+                            <div class="budget-header" style="margin-bottom:15px;">
+                                <span>💰 Budget Calculator</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Income ($)</label>
+                                <input type="number" class="form-input" id="bc-income" placeholder="e.g. 2000" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Spending ($)</label>
+                                <input type="number" class="form-input" id="bc-spending" placeholder="e.g. 800" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">User ID <span style="color:#aaa; font-size:11px;">(optional)</span></label>
+                                <input type="number" class="form-input" id="bc-userId" placeholder="e.g. 1" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Category ID <span style="color:#aaa; font-size:11px;">(optional)</span></label>
+                                <input type="number" class="form-input" id="bc-categoryId" placeholder="e.g. 1" min="1">
+                            </div>
+                            <button class="btn-primary" onclick="calculateBudget()">Calculate</button>
+                            <div id="bc-error" style="display:none; margin-top:12px; background:#FFEBEE;
+                                border-left:4px solid #F44336; padding:10px 12px; border-radius:6px;
+                                font-size:13px; color:#F44336;"></div>
+                            <div id="bc-result" style="display:none; margin-top:15px;">
+                                <div class="calculated-box">
+                                    <div class="calc-row">
+                                        <span>Income:</span>
+                                        <span id="bc-income-display">$0.00</span>
+                                    </div>
+                                    <div class="calc-row">
+                                        <span>Spending:</span>
+                                        <span id="bc-spending-display">$0.00</span>
+                                    </div>
+                                    <div class="calc-row total">
+                                        <span>Remaining Budget:</span>
+                                        <span id="bc-remaining">$0.00</span>
+                                    </div>
+                                    <div id="bc-limits" style="margin-top:10px; font-size:12px; color:#666;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SAVINGS GOAL -->
+                    <div id="panel-savings" style="display:none;">
+                        <div class="budget-card">
+                            <div class="budget-header" style="margin-bottom:15px;">
+                                <span>🎯 Savings Goal</span>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Goal Name</label>
+                                <input type="text" class="form-input" id="sg-name" placeholder="e.g. New Laptop">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Target Amount ($)</label>
+                                <input type="number" class="form-input" id="sg-target" placeholder="e.g. 1500" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Saved So Far ($)</label>
+                                <input type="number" class="form-input" id="sg-saved" placeholder="e.g. 400" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">User ID <span style="color:#aaa; font-size:11px;">(optional)</span></label>
+                                <input type="number" class="form-input" id="sg-userId" placeholder="e.g. 1" min="1">
+                            </div>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button class="btn-primary" style="flex:2;" onclick="calculateSavings()">Calculate</button>
+                                <button class="btn-secondary" style="flex:1; margin-top:0;" onclick="saveSavings()">Save</button>
+                                <button class="btn-secondary" style="flex:1; margin-top:0;" onclick="loadLatest()">Load</button>
+                            </div>
+                            <div id="sg-error" style="display:none; margin-top:12px; background:#FFEBEE;
+                                border-left:4px solid #F44336; padding:10px 12px; border-radius:6px;
+                                font-size:13px; color:#F44336;"></div>
+                            <div id="sg-result" style="display:none; margin-top:15px;">
+                                <div class="calculated-box">
+                                    <div class="calc-row">
+                                        <span>Target:</span>
+                                        <span id="sg-target-display">$0.00</span>
+                                    </div>
+                                    <div class="calc-row">
+                                        <span>Saved:</span>
+                                        <span id="sg-saved-display">$0.00</span>
+                                    </div>
+                                    <div class="calc-row total">
+                                        <span>Still Needed:</span>
+                                        <span id="sg-remaining">$0.00</span>
+                                    </div>
+                                    <div id="sg-meta" style="margin-top:10px; font-size:12px; color:#666;"></div>
+                                </div>
+                                <div style="margin-top:12px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#666; margin-bottom:4px;">
+                                        <span>Progress</span>
+                                        <span id="sg-percent">0%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="sg-progress-fill" style="width:0%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="nav-bar">
+                    <div class="nav-item">
+                        <a href="home.html" class="nav-icon">Home</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="addpurchase.html" class="nav-icon">Add</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="budget.html" class="nav-icon">Budgets</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="pricetracker.html" class="nav-icon">Prices</a>
+                    </div>
+                    <div class="nav-item active">
+                        <a href="calculator.html" class="nav-icon">Calc</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BUDGET_URL  = "http://localhost:3001";
+        const SAVINGS_URL = "http://localhost:3000";
+
+        function updateTime() {
+            const now = new Date();
+            const h = now.getHours();
+            const m = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${h}:${m}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        function toggleMenu() {
+            const menu = document.getElementById('menuDropdown');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('menuDropdown');
+            if (!e.target.closest('.menu-wrapper') && menu) {
+                menu.style.display = 'none';
+            }
+        });
+
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+
+        function switchTab(tab) {
+            const isBudget = tab === 'budget';
+            document.getElementById('panel-budget').style.display  = isBudget ? 'block' : 'none';
+            document.getElementById('panel-savings').style.display = isBudget ? 'none'  : 'block';
+            document.getElementById('tab-budget').style.background  = isBudget ? '#4CAF50' : 'white';
+            document.getElementById('tab-budget').style.color       = isBudget ? 'white'   : '#4CAF50';
+            document.getElementById('tab-savings').style.background = isBudget ? 'white'   : '#4CAF50';
+            document.getElementById('tab-savings').style.color      = isBudget ? '#4CAF50' : 'white';
+        }
+
+        function fmt(n) {
+            const v = parseFloat(n);
+            return isNaN(v) ? '$0.00' : '$' + v.toFixed(2);
+        }
+
+        function showError(id, msg) {
+            const el = document.getElementById(id + '-error');
+            el.textContent = '⚠ ' + msg;
+            el.style.display = 'block';
+            document.getElementById(id + '-result').style.display = 'none';
+        }
+
+        function clearError(id) {
+            document.getElementById(id + '-error').style.display = 'none';
+        }
+
+        async function calculateBudget() {
+            clearError('bc');
+            const income     = parseFloat(document.getElementById('bc-income').value);
+            const spending   = parseFloat(document.getElementById('bc-spending').value);
+            const userId     = document.getElementById('bc-userId').value;
+            const categoryId = document.getElementById('bc-categoryId').value;
+            const body = { income, spending };
+            if (userId)     body.userId     = parseInt(userId);
+            if (categoryId) body.categoryId = parseInt(categoryId);
+            try {
+                const res  = await fetch(`${BUDGET_URL}/budget/savings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok) return showError('bc', data.error || 'Something went wrong.');
+                document.getElementById('bc-income-display').textContent  = fmt(income);
+                document.getElementById('bc-spending-display').textContent = fmt(spending);
+                const remEl = document.getElementById('bc-remaining');
+                remEl.textContent = fmt(data.remainingBudget);
+                remEl.style.color = data.remainingBudget < 0 ? '#F44336' : '#4CAF50';
+                let limitsText = '';
+                if (data.monthly_limit) limitsText += `Monthly limit: ${fmt(data.monthly_limit)}  `;
+                if (data.weekly_limit)  limitsText += `Weekly limit: ${fmt(data.weekly_limit)}`;
+                document.getElementById('bc-limits').textContent = limitsText;
+                document.getElementById('bc-result').style.display = 'block';
+            } catch (err) {
+                showError('bc', 'Could not reach the server. Make sure BudgetCalculator.js is running.');
+            }
+        }
+
+        async function calculateSavings() {
+            clearError('sg');
+            const targetAmount = parseFloat(document.getElementById('sg-target').value);
+            const savedAmount  = parseFloat(document.getElementById('sg-saved').value);
+            const userId       = document.getElementById('sg-userId').value;
+            const body = { targetAmount, savedAmount };
+            if (userId) body.userId = parseInt(userId);
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/calculate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok) return showError('sg', data.error || 'Something went wrong.');
+                document.getElementById('sg-target-display').textContent = fmt(targetAmount);
+                document.getElementById('sg-saved-display').textContent  = fmt(savedAmount);
+                const remEl = document.getElementById('sg-remaining');
+                remEl.textContent = fmt(data.remainingGoal);
+                remEl.style.color = data.remainingGoal <= 0 ? '#4CAF50' : '#333';
+                const pct = Math.min((savedAmount / targetAmount) * 100, 100) || 0;
+                document.getElementById('sg-percent').textContent = pct.toFixed(0) + '%';
+                document.getElementById('sg-progress-fill').style.width = pct + '%';
+                document.getElementById('sg-meta').textContent = data.goal_name ? `Goal: ${data.goal_name}` : '';
+                document.getElementById('sg-result').style.display = 'block';
+            } catch (err) {
+                showError('sg', 'Could not reach the server. Make sure Savings.js is running.');
+            }
+        }
+
+        async function saveSavings() {
+            clearError('sg');
+            const userId       = document.getElementById('sg-userId').value;
+            const goalName     = document.getElementById('sg-name').value;
+            const targetAmount = parseFloat(document.getElementById('sg-target').value);
+            const savedAmount  = parseFloat(document.getElementById('sg-saved').value);
+            if (!userId || !goalName) return showError('sg', 'User ID and Goal Name are required to save.');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/save`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: parseInt(userId), goalName, targetAmount, savedAmount })
+                });
+                const data = await res.json();
+                if (!res.ok) return showError('sg', data.error || 'Could not save.');
+                document.getElementById('sg-meta').textContent = `✅ Saved! Goal ID: ${data.goalId}`;
+                document.getElementById('sg-result').style.display = 'block';
+            } catch (err) {
+                showError('sg', 'Could not reach the server. Make sure Savings.js is running.');
+            }
+        }
+
+        async function loadLatest() {
+            clearError('sg');
+            const userId = document.getElementById('sg-userId').value;
+            if (!userId) return showError('sg', 'Enter a User ID to load the latest goal.');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/latest?userId=${userId}`);
+                const data = await res.json();
+                if (!res.ok) return showError('sg', data.error || 'No saved goals found.');
+                document.getElementById('sg-name').value   = data.goal_name    || '';
+                document.getElementById('sg-target').value = data.target_amount || '';
+                document.getElementById('sg-saved').value  = data.saved_amount  || '';
+                document.getElementById('sg-target-display').textContent = fmt(data.target_amount);
+                document.getElementById('sg-saved-display').textContent  = fmt(data.saved_amount);
+                document.getElementById('sg-remaining').textContent      = fmt(data.remaining_goal);
+                const pct = Math.min((data.saved_amount / data.target_amount) * 100, 100) || 0;
+                document.getElementById('sg-percent').textContent = pct.toFixed(0) + '%';
+                document.getElementById('sg-progress-fill').style.width = pct + '%';
+                document.getElementById('sg-meta').textContent = `Loaded from: ${new Date(data.created_at).toLocaleDateString()}`;
+                document.getElementById('sg-result').style.display = 'block';
+            } catch (err) {
+                showError('sg', 'Could not reach the server. Make sure Savings.js is running.');
+            }
+        }
+    </script>
+</body>
+</html>
