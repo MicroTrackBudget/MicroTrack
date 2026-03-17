@@ -120,55 +120,55 @@
         }
         
         //Handle login form submission
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    
-    const email = document.getElementById('email').value.toLowerCase().trim();
-    const password = document.getElementById('password').value;
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.toLowerCase().trim();
+            const password = document.getElementById('password').value;
 
-    try {
-        const res = await fetch('/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert(`❌ ${data.error}\n\nPlease try again or create an account.`);
+                    return;
+                }
+
+                //Successful login (same localStorage logic you had)
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userName', data.user.username);
+                localStorage.setItem('userId', data.user.user_id);
+                localStorage.setItem('isLoggedIn', 'true');
+
+                //Success confetti burst
+                confettiBurst();
+
+                //Success message
+                const btn = document.querySelector('.btn-primary');
+                btn.textContent = 'Success! 🎉';
+                btn.style.background = '#4CAF50';
+
+                //Redirect to home page
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 1500);
+            
+            } catch (err) {
+                console.error(err);
+                alert('❌ Server error, try again later.');
+            }
         });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            alert(`❌ ${data.error}\n\nPlease try again or create an account.`);
-            return;
-        }
-
-        //Successful login (same localStorage logic you had)
-        localStorage.setItem('userEmail', email);
-        localStorage.setItem('userName', data.user.username);
-        localStorage.setItem('userId', data.user.user_id);
-        localStorage.setItem('isLoggedIn', 'true');
-
-        //Success confetti burst
-        confettiBurst();
-
-        //Success message
-        const btn = document.querySelector('.btn-primary');
-        btn.textContent = 'Success! 🎉';
-        btn.style.background = '#4CAF50';
-
-        //Redirect to home page
-        setTimeout(() => {
-            window.location.href = 'home.html';
-        }, 1500);
-
-    } catch (err) {
-        console.error(err);
-        alert('❌ Server error, try again later.');
-    }
-});
         
         //Add confetti on email field focus
-document.getElementById('email').addEventListener('focus', () => {
-    confettiBurst();
-});
+        document.getElementById('email').addEventListener('focus', () => {
+            confettiBurst();
+        });
     </script>
 </body>
 </html>

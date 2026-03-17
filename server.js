@@ -26,10 +26,7 @@ db.connect(err => {
   console.log('Connected to MySQL Database');
 });
 
-
-// ======================
 // REGISTER USER
-// ======================
 
 app.post('/register', (req,res)=>{
 
@@ -59,13 +56,10 @@ app.post('/register', (req,res)=>{
     });
 
   });
-
 });
 
 
-// ======================
 // LOGIN
-// ======================
 
 app.post('/login',(req,res)=>{
 
@@ -92,13 +86,9 @@ app.post('/login',(req,res)=>{
     });
 
   });
-
 });
 
-
-// ======================
 // CREATE BUDGET
-// ======================
 
 app.post('/createBudget',(req,res)=>{
 
@@ -124,46 +114,37 @@ app.post('/createBudget',(req,res)=>{
         budgetId: result.insertId
       });
 
-    });
-
+    }
+  );
 });
 
 //Categories
 app.post("/getOrCreateCategory", (req, res) => {
-
+  
   const { category_name } = req.body;
 
   // Check if exists
   db.query(
-      "SELECT category_id FROM SpendCategory WHERE category_name = ?",
-      [category_name],
-      (err, results) => {
-
-          if (err) return res.status(500).json({ error: "DB error" });
-
-          if (results.length > 0) {
-              return res.json({ category_id: results[0].category_id });
-          }
-
-          // Create it
-          db.query(
-              "INSERT INTO SpendCategory (category_name) VALUES (?)",
-              [category_name],
-              (err, result) => {
-
-                  if (err) return res.status(500).json({ error: "Insert error" });
-
-                  res.json({ category_id: result.insertId });
-              }
-          );
+    "SELECT category_id FROM SpendCategory WHERE category_name = ?",
+    [category_name], (err, results) => {
+      if (err) return res.status(500).json({ error: "DB error" });
+      if (results.length > 0) {
+        return res.json({ category_id: results[0].category_id });
       }
+      
+      // Create it
+      db.query( 
+        "INSERT INTO SpendCategory (category_name) VALUES (?)",
+        [category_name], (err, result) => {
+          if (err) return res.status(500).json({ error: "Insert error" });
+          res.json({ category_id: result.insertId });
+        }
+      );
+    }
   );
 });
 
-
-// ======================
 // GET USER BUDGETS
-// ======================
 
 app.get('/budgets/:userId',(req,res)=>{
 
@@ -192,13 +173,9 @@ app.get('/budgets/:userId',(req,res)=>{
     res.json(results);
 
   });
-
 });
 
-
-// ======================
 // DELETE BUDGET
-// ======================
 
 app.delete('/budget/:id',(req,res)=>{
 
@@ -206,15 +183,14 @@ app.delete('/budget/:id',(req,res)=>{
 
   db.query(
     `DELETE FROM Budget WHERE budget_id=?`,
-    [id],
-    err => {
-
+    [id],err => {
+      
       if(err) return res.status(500).json({error:"Database error"});
 
       res.json({message:"Budget deleted"});
 
-    });
-
+    }
+  );
 });
 
 
