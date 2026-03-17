@@ -69,169 +69,55 @@
     </div>
     
     <script>
-        //Update time
-        function updateTime() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
-        }
-        updateTime();
-        setInterval(updateTime, 60000);
+
+        document.getElementById('signupForm').addEventListener('submit', async function(e){
         
-        //Confetti animation
-        function createConfetti() {
-            const confetti = document.getElementById('confetti');
-            const symbols = ['$', '💰', '💵', '💸', '💲', '💴', '💶', '💷'];
-            const colors = ['#4CAF50', '#81C784', '#66BB6A', '#FFD700', '#FFC107'];
-            
-            setInterval(() => {
-                const dollar = document.createElement('div');
-                dollar.className = 'dollar';
-                const symbol = symbols[Math.floor(Math.random() * symbols.length)];
-                dollar.textContent = symbol;
-                dollar.style.left = Math.random() * 100 + '%';
-                dollar.style.animationDuration = (Math.random() * 3 + 3) + 's';
-                dollar.style.fontSize = (Math.random() * 20 + 20) + 'px';
-                
-                if (symbol === '$') {
-                    dollar.style.color = colors[Math.floor(Math.random() * colors.length)];
-                }
-                
-                confetti.appendChild(dollar);
-                
-                setTimeout(() => {
-                    dollar.remove();
-                }, 6000);
-            }, 400);
-        }
-        
-        createConfetti();
-        
-        //Burst of confetti
-        function confettiBurst() {
-            const confetti = document.getElementById('confetti');
-            const symbols = ['💰', '💵', '💸', '💲'];
-            
-            for(let i = 0; i < 40; i++) {
-                setTimeout(() => {
-                    const dollar = document.createElement('div');
-                    dollar.className = 'dollar';
-                    dollar.textContent = symbols[Math.floor(Math.random() * symbols.length)];
-                    dollar.style.left = (Math.random() * 100) + '%';
-                    dollar.style.animationDuration = '2s';
-                    dollar.style.fontSize = (Math.random() * 16 + 24) + 'px';
-                    confetti.appendChild(dollar);
-                    
-                    setTimeout(() => dollar.remove(), 2000);
-                }, i * 40);
-            }
-        }
-        
-        //Password strength checker
-        document.getElementById('password').addEventListener('input', function() {
-            const password = this.value;
-            const strengthBar = document.getElementById('strengthBar');
-            const strengthText = document.getElementById('strengthText');
-            
-            let strength = 0;
-            if (password.length >= 6) strength++;
-            if (password.length >= 10) strength++;
-            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-            if (/\d/.test(password)) strength++;
-            if (/[^a-zA-Z\d]/.test(password)) strength++;
-            
-            strengthBar.className = 'password-strength-bar';
-            
-            if (strength < 2) {
-                strengthBar.classList.add('strength-weak');
-                strengthText.textContent = 'Weak password';
-                strengthText.style.color = '#F44336';
-            } else if (strength < 4) {
-                strengthBar.classList.add('strength-medium');
-                strengthText.textContent = 'Medium strength';
-                strengthText.style.color = '#FF9800';
-            } else {
-                strengthBar.classList.add('strength-strong');
-                strengthText.textContent = 'Strong password!';
-                strengthText.style.color = '#4CAF50';
-            }
-        });
-        
-        //Password match checker
-        document.getElementById('confirmPassword').addEventListener('input', function() {
-            const password = document.getElementById('password').value;
-            const confirmPassword = this.value;
-            const matchText = document.getElementById('matchText');
-            
-            if (confirmPassword.length > 0) {
-                if (password === confirmPassword) {
-                    matchText.textContent = '✓ Passwords match';
-                    matchText.style.color = '#4CAF50';
-                } else {
-                    matchText.textContent = '✗ Passwords do not match';
-                    matchText.style.color = '#F44336';
-                }
-            } else {
-                matchText.textContent = '';
-            }
-        });
-        
-        //Handle signup form submission
-        document.getElementById('signupForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+        
             const fullName = document.getElementById('fullName').value;
             const email = document.getElementById('email').value.toLowerCase().trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            //Validate passwords match
-            if (password !== confirmPassword) {
-                alert('❌ Passwords do not match!');
+        
+            if(password !== confirmPassword){
+                alert("❌ Passwords do not match");
                 return;
             }
-            
-            //Validate password strength
-            if (password.length < 6) {
-                alert('❌ Password must be at least 6 characters long!');
+        
+            if(password.length < 6){
+                alert("❌ Password must be at least 6 characters");
                 return;
             }
-            
-            //Check if account already exists
-            const users = JSON.parse(localStorage.getItem('users') || '{}');
-            
-            if (users[email]) {
-                alert('❌ An account with this email already exists!\nPlease log in instead.');
-                return;
+        
+            const response = await fetch("/register",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    username: fullName,
+                    email: email,
+                    password: password
+                })
+            });
+        
+            const data = await response.json();
+        
+            if(response.ok){
+        
+                alert("✅ Account created successfully!");
+        
+                setTimeout(()=>{
+                    window.location.href = "index.html";
+                },1000);
+        
+            }else{
+        
+                alert(data.error);
+        
             }
-            
-            //Create new account
-            users[email] = {
-                fullName: fullName,
-                email: email,
-                password: password, // In production, this should be hashed!
-                createdAt: new Date().toISOString()
-            };
-            
-            //Save to localStorage
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            //Create success confetti burst
-            confettiBurst();
-            
-            //Show success message
-            const btn = document.querySelector('.btn-primary');
-            btn.textContent = 'Account Created! 🎉';
-            btn.style.background = '#4CAF50';
-            
-            alert('✅ Account created successfully!\nYou can now log in.');
-            
-            //Redirect to login page
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
+        
         });
-    </script>
+        </script>
 </body>
 </html>

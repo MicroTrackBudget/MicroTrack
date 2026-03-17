@@ -5,18 +5,16 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-// Built-in JSON parser
 app.use(express.json());
-
-// Serve frontend files
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 // DATABASE CONNECTION
 
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
-  password: 'yairlopez1819!', 
+  password: 'yairlopez1819!',
   database: 'BudgetApp'
 });
 
@@ -28,196 +26,200 @@ db.connect(err => {
   console.log('Connected to MySQL Database');
 });
 
-// AUTH ROUTES
 
-// Register
-app.post('/register', (req, res) => {
-  const { username, email, password } = req.body;
-  if (!username || !email || !password)
-    return res.status(400).json({ error: 'All fields required' });
+// ======================
+// REGISTER USER
+// ======================
 
-  const query = 'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)';
+app.post('/register', (req,res)=>{
 
-  db.query(query, [username, email, password], (err, result) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY')
-        return res.status(409).json({ error: 'Email already exists' });
-      return res.status(500).json({ error: 'Database error' });
-    }
-    res.status(201).json({ message: 'User registered', userId: result.insertId });
-  });
-});
+  const {username,email,password} = req.body;
 
-// Login
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ error: 'Email and password required' });
-
-  const query = 'SELECT * FROM Users WHERE email = ? AND password = ?';
-
-  db.query(query, [email, password], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    if (results.length === 0)
-      return res.status(401).json({ error: 'Invalid credentials' });
-
-    res.json({ message: 'Login successful', user: results[0] });
-  });
-});
-
-
-// BUDGET ROUTES
-
-// Create Budget
-app.post('/createBudget', (req, res) => {
-  const {
-    budget_name,
-    monthly_limit,
-    weekly_limit,
-    user_id,
-    category_id,
-    start_date,
-    end_date
-  } = req.body;
-
-  if (!budget_name || !monthly_limit || !user_id)
-    return res.status(400).json({ error: 'Missing required fields' });
-
-  if (monthly_limit <= 0)
-    return res.status(400).json({ error: 'Monthly limit must be greater than 0' });
+  if(!username || !email || !password)
+    return res.status(400).json({error:"All fields required"});
 
   const query = `
-    INSERT INTO Budget
-    (budget_name, monthly_limit, weekly_limit, user_id, category_id, start_date, end_date, remaining_amount)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  INSERT INTO Users (username,email,password)
+  VALUES (?,?,?)
   `;
 
-  db.query(
-    query,
-    [
-      budget_name,
-      monthly_limit,
-      weekly_limit || 0,
-      user_id,
-      category_id || 1,
-      start_date,
-      end_date,
-      monthly_limit
-    ],
-    (err, result) => {
-      if (err) return res.status(500).json({ error: 'Database error' });
+  db.query(query,[username,email,password],(err,result)=>{
 
-      res.status(201).json({
-        message: 'Budget created',
+    if(err){
+
+      if(err.code === 'ER_DUP_ENTRY')
+        return res.status(409).json({error:"Email already exists"});
+
+      return res.status(500).json({error:"Database error"});
+    }
+
+    res.json({
+      message:"User registered",
+      userId: result.insertId
+    });
+
+  });
+
+});
+
+
+// ======================
+// LOGIN
+// ======================
+
+app.post('/login',(req,res)=>{
+
+  const {email,password} = req.body;
+
+  if(!email || !password)
+    return res.status(400).json({error:"Missing fields"});
+
+  const query = `
+  SELECT * FROM Users
+  WHERE email=? AND password=?
+  `;
+
+  db.query(query,[email,password],(err,results)=>{
+
+    if(err) return res.status(500).json({error:"Database error"});
+
+    if(results.length===0)
+      return res.status(401).json({error:"Invalid login"});
+
+    res.json({
+      message:"Login successful",
+      user: results[0]
+    });
+
+  });
+
+});
+
+
+// ======================
+// CREATE BUDGET
+// ======================
+
+app.post('/createBudget',(req,res)=>{
+
+  const {monthly_limit,weekly_limit,user_id,category_id} = req.body;
+
+  if(monthly_limit === undefined || user_id === undefined || category_id === undefined)
+    return res.status(400).json({error:"Missing required fields"});
+
+  const query = `
+  INSERT INTO Budget
+  (monthly_limit,weekly_limit,user_id,category_id)
+  VALUES (?,?,?,?)
+  `;
+
+  db.query(query,
+    [monthly_limit,weekly_limit || 0,user_id,category_id],
+    (err,result)=>{
+
+      if(err) return res.status(500).json({error:"Database error"});
+
+      res.json({
+        message:"Budget created",
         budgetId: result.insertId
       });
-    }
-  );
+
+    });
+
 });
 
-// Get User Budgets
-app.get('/budgets/:userId', (req, res) => {
-  const { userId } = req.params;
+//Categories
+app.post("/getOrCreateCategory", (req, res) => {
 
+  const { category_name } = req.body;
+
+  // Check if exists
   db.query(
-    'SELECT * FROM Budget WHERE user_id = ?',
-    [userId],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: 'Database error' });
-      res.json(results);
-    }
+      "SELECT category_id FROM SpendCategory WHERE category_name = ?",
+      [category_name],
+      (err, results) => {
+
+          if (err) return res.status(500).json({ error: "DB error" });
+
+          if (results.length > 0) {
+              return res.json({ category_id: results[0].category_id });
+          }
+
+          // Create it
+          db.query(
+              "INSERT INTO SpendCategory (category_name) VALUES (?)",
+              [category_name],
+              (err, result) => {
+
+                  if (err) return res.status(500).json({ error: "Insert error" });
+
+                  res.json({ category_id: result.insertId });
+              }
+          );
+      }
   );
 });
 
-// Delete Budget 
-app.delete('/budget/:id', (req, res) => {
-  const { id } = req.params;
 
-  db.query(
-    'DELETE FROM Budget WHERE budget_id = ?',
-    [id],
-    (err) => {
-      if (err) return res.status(500).json({ error: 'Database error' });
-      res.json({ message: 'Budget deleted' });
-    }
-  );
-});
+// ======================
+// GET USER BUDGETS
+// ======================
 
+app.get('/budgets/:userId',(req,res)=>{
 
-// TRANSACTION ROUTES
+  const {userId} = req.params;
 
-// Add Expense
-app.post('/addExpense', (req, res) => {
-  const { budget_id, expense_amount, description } = req.body;
-
-  if (!budget_id || !expense_amount || expense_amount <= 0)
-    return res.status(400).json({ error: 'Invalid input' });
-
-  const findBudget = `
-    SELECT remaining_amount, user_id, category_id, monthly_limit
-    FROM Budget WHERE budget_id = ?
+  const query = `
+  SELECT
+    B.budget_id,
+    S.category_name,
+    B.monthly_limit,
+    IFNULL(SUM(T.transaction_amount),0) AS spent
+  FROM Budget B
+  JOIN SpendCategory S
+    ON B.category_id = S.category_id
+  LEFT JOIN Transactions T
+    ON T.category_id = B.category_id
+    AND T.user_id = B.user_id
+  WHERE B.user_id = ?
+  GROUP BY B.budget_id
   `;
 
-  db.query(findBudget, [budget_id], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    if (results.length === 0)
-      return res.status(404).json({ error: 'Budget not found' });
+  db.query(query,[userId],(err,results)=>{
 
-    const budget = results[0];
+    if(err) return res.status(500).json({error:"Database error"});
 
-    if (expense_amount > budget.remaining_amount)
-      return res.status(400).json({ error: 'Budget exceeded' });
+    res.json(results);
 
-    const newRemaining = budget.remaining_amount - expense_amount;
-
-    const insertTransaction = `
-      INSERT INTO Transactions
-      (transaction_amount, transaction_date, user_id, category_id)
-      VALUES (?, NOW(), ?, ?)
-    `;
-
-    db.query(
-      insertTransaction,
-      [expense_amount, budget.user_id, budget.category_id],
-      (err2) => {
-        if (err2) return res.status(500).json({ error: 'Database error' });
-
-        db.query(
-          'UPDATE Budget SET remaining_amount = ? WHERE budget_id = ?',
-          [newRemaining, budget_id],
-          (err3) => {
-            if (err3) return res.status(500).json({ error: 'Database error' });
-
-            res.json({
-              message: 'Expense added',
-              remaining_amount: newRemaining
-            });
-          }
-        );
-      }
-    );
   });
+
 });
 
-// Get Transactions
-app.get('/transactions/:userId', (req, res) => {
-  const { userId } = req.params;
+
+// ======================
+// DELETE BUDGET
+// ======================
+
+app.delete('/budget/:id',(req,res)=>{
+
+  const {id} = req.params;
 
   db.query(
-    'SELECT * FROM Transactions WHERE user_id = ?',
-    [userId],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: 'Database error' });
-      res.json(results);
-    }
-  );
+    `DELETE FROM Budget WHERE budget_id=?`,
+    [id],
+    err => {
+
+      if(err) return res.status(500).json({error:"Database error"});
+
+      res.json({message:"Budget deleted"});
+
+    });
+
 });
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'yairBudget.html'));
-});
 
-//START SERVER
-app.listen(port, () => {
+// START SERVER
+
+app.listen(port,()=>{
   console.log(`Server running at http://localhost:${port}`);
 });

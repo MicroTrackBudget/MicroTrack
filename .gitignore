@@ -4,4 +4,3 @@ node_modules/
 
 # NPM package files
 package-lock.json
-package.json
