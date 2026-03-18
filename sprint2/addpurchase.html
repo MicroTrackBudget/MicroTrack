@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBud - Add Purchase</title>
+    <link rel="stylesheet" href="appstyles.css">
+</head>
+<body>
+<div class="container">
+<div class="phone-frame">
+<div class="screen">
+
+<div class="status-bar">
+    <span id="currentTime"></span>
+
+    <div class="menu-wrapper">
+        <span class="menu-dots" onclick="toggleMenu()">●●●</span>
+        <div class="menu-dropdown" id="menuDropdown">
+            <div onclick="logout()">Logout</div>
+        </div>
+    </div>
+</div>
+
+<div class="header">Add Purchase</div>
+
+<div class="content">
+<form id="purchaseForm">
+
+<div class="form-group">
+    <label class="form-label">Item Name</label>
+    <input type="text" class="form-input" id="itemName" required>
+</div>
+
+<!-- Manual Category Input -->
+<div class="form-group">
+    <label class="form-label">Category</label>
+    <input type="text" class="form-input" id="category" placeholder="Enter category" required>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Store / Retailer</label>
+    <input type="text" class="form-input" id="store" required>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Price</label>
+    <input type="number" class="form-input" id="price" step="0.01" min="0" required>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Quantity</label>
+    <input type="number" class="form-input" id="quantity" value="1" min="1" required>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Tax Rate (%)</label>
+    <input type="number" class="form-input" id="taxRate" value="8" step="0.01">
+</div>
+
+<div class="calculated-box">
+    <div class="calc-row">
+        <span>Subtotal:</span>
+        <span id="subtotal">$0.00</span>
+    </div>
+
+    <div class="calc-row">
+        <span>Tax (<span id="taxPercent">8</span>%):</span>
+        <span id="tax">$0.00</span>
+    </div>
+
+    <div class="calc-row total">
+        <span>Total:</span>
+        <span id="total">$0.00</span>
+    </div>
+</div>
+
+<button type="submit" class="btn-primary">Save Purchase</button>
+
+<button type="button" class="btn-secondary"
+onclick="document.getElementById('purchaseForm').reset();calculateTotal();">
+Clear Form
+</button>
+
+</form>
+</div>
+
+<div class="nav-bar">
+    <div class="nav-item"><a href="home.html">Home</a></div>
+    <div class="nav-item active"><a href="addpurchase.html">Add</a></div>
+    <div class="nav-item"><a href="budget.html">Budgets</a></div>
+    <div class="nav-item"><a href="pricetracker.html">Prices</a></div>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+
+/* ---------- TIME ---------- */
+function updateTime(){
+    const now=new Date();
+    document.getElementById('currentTime').textContent=
+        `${now.getHours()}:${now.getMinutes().toString().padStart(2,'0')}`;
+}
+updateTime();
+setInterval(updateTime,60000);
+
+/* ---------- MENU ---------- */
+function toggleMenu(){
+    const menu=document.getElementById('menuDropdown');
+    menu.style.display=menu.style.display==='block'?'none':'block';
+}
+
+function logout(){
+    localStorage.removeItem('isLoggedIn');
+    window.location.href='index.html';
+}
+
+document.addEventListener('click',e=>{
+    if(!e.target.closest('.menu-wrapper')){
+        document.getElementById('menuDropdown').style.display='none';
+    }
+});
+
+/* ---------- LOGIN CHECK ---------- */
+if(!localStorage.getItem('isLoggedIn')){
+    window.location.href='index.html';
+}
+
+/* ---------- CALCULATIONS ---------- */
+function calculateTotal(){
+
+    const price=parseFloat(priceEl.value)||0;
+    const qty=parseInt(quantityEl.value)||1;
+    const taxRate=parseFloat(taxRateEl.value)||0;
+
+    const subtotal=price*qty;
+    const tax=subtotal*(taxRate/100);
+    const total=subtotal+tax;
+
+    subtotalEl.textContent=`$${subtotal.toFixed(2)}`;
+    taxEl.textContent=`$${tax.toFixed(2)}`;
+    taxPercent.textContent=taxRate.toFixed(1);
+    totalEl.textContent=`$${total.toFixed(2)}`;
+}
+
+const priceEl=document.getElementById('price');
+const quantityEl=document.getElementById('quantity');
+const taxRateEl=document.getElementById('taxRate');
+const subtotalEl=document.getElementById('subtotal');
+const taxEl=document.getElementById('tax');
+const totalEl=document.getElementById('total');
+const taxPercent=document.getElementById('taxPercent');
+
+priceEl.addEventListener('input',calculateTotal);
+quantityEl.addEventListener('input',calculateTotal);
+taxRateEl.addEventListener('input',calculateTotal);
+
+/* ---------- DATABASE SAVE (UNCHANGED CONNECTION) ---------- */
+document.getElementById('purchaseForm')
+.addEventListener('submit',async function(e){
+
+    e.preventDefault();
+
+    const total=parseFloat(totalEl.textContent.replace('$',''));
+
+    try{
+        const response=await fetch('http://localhost:3000/addExpense',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({
+                category:document.getElementById('category').value,
+                expense_amount:total,
+                description:document.getElementById('itemName').value,
+                store:document.getElementById('store').value
+            })
+        });
+
+        const data=await response.json();
+
+        if(response.ok){
+            alert('✅ Purchase saved successfully!');
+            window.location.href='home.html';
+        }else{
+            alert('❌ '+(data.error||'Failed to save purchase'));
+        }
+
+    }catch(error){
+        console.error(error);
+        alert('❌ Could not save purchase');
+    }
+});
+
+</script>
+</body>
+</html>
