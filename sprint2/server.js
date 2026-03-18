@@ -25,6 +25,8 @@ db.connect(err => {
   console.log('✅ Connected to MySQL Database (BudgetApp)');
 });
 
+// ===== SPRINT 1 ENDPOINTS =====
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
@@ -60,6 +62,8 @@ app.post('/budget/calculate', (req, res) => {
     });
   });
 });
+
+// ===== AUTHENTICATION ENDPOINTS =====
 
 app.post('/register', (req, res) => {
   const { username, email, password } = req.body;
@@ -117,7 +121,6 @@ app.post('/verifyUser', (req, res) => {
   });
 });
 
-// Check if email exists (for password reset)
 app.post('/checkEmail', (req, res) => {
   const { email } = req.body;
   const query = 'SELECT user_id FROM Users WHERE email = ?';
@@ -127,6 +130,8 @@ app.post('/checkEmail', (req, res) => {
     res.json({ message: 'Email exists', exists: true });
   });
 });
+
+// ===== BUDGET ENDPOINTS =====
 
 app.get('/budgets/:userId', (req, res) => {
   const { userId } = req.params;
@@ -163,9 +168,13 @@ app.post('/createBudget', (req, res) => {
   });
 });
 
+// ===== TRANSACTION ENDPOINTS =====
+
 // Add purchase - MANUAL CATEGORY (no budget linkage)
 app.post('/addPurchase', (req, res) => {
   const { user_id, category_id, transaction_amount, description } = req.body;
+  
+  console.log('Add Purchase Request:', { user_id, category_id, transaction_amount, description });
   
   if (!user_id || !category_id || !transaction_amount) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -176,8 +185,9 @@ app.post('/addPurchase', (req, res) => {
   db.query(query, [transaction_amount, user_id, category_id], (err, result) => {
     if (err) {
       console.error('Add purchase error:', err);
-      return res.status(500).json({ error: 'Database error' });
+      return res.status(500).json({ error: 'Database error: ' + err.message });
     }
+    console.log('Purchase saved successfully. Transaction ID:', result.insertId);
     res.status(201).json({ 
       message: 'Purchase saved successfully',
       transactionId: result.insertId
@@ -232,8 +242,17 @@ app.delete('/transaction/:id', (req, res) => {
   });
 });
 
+// ===== START SERVER =====
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 http://localhost:${PORT}/health`);
   console.log(`✅ All Features Ready`);
+  console.log(`\nAvailable endpoints:`);
+  console.log(`  POST /login`);
+  console.log(`  POST /register`);
+  console.log(`  POST /createBudget`);
+  console.log(`  POST /addPurchase`);
+  console.log(`  GET  /budgets/:userId`);
+  console.log(`  GET  /transactions/:userId`);
 });
