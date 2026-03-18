@@ -219,3 +219,82 @@ app.get('/sprint2/test-walmart', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+
+// CREATE BUDGET
+app.post('/createBudget', (req,res)=>{
+    const {monthly_limit,weekly_limit,user_id,category_id} = req.body;
+  
+    if(monthly_limit === undefined || user_id === undefined || category_id === undefined)
+      return res.status(400).json({error:"Missing required fields"});
+  
+    db.query(
+      `INSERT INTO Budget (monthly_limit,weekly_limit,user_id,category_id)
+       VALUES (?,?,?,?)`,
+      [monthly_limit, weekly_limit || 0, user_id, category_id],
+      (err,result)=>{
+        if(err) return res.status(500).json({error:"Database error"});
+        res.json({message:"Budget created", budgetId: result.insertId});
+      }
+    );
+  });
+
+  // CATEGORY
+app.post("/getOrCreateCategory", (req, res) => {
+    const { category_name } = req.body;
+  
+    db.query(
+      "SELECT category_id FROM SpendCategory WHERE category_name = ?",
+      [category_name],
+      (err, results) => {
+        if (err) return res.status(500).json({ error: "DB error" });
+  
+        if (results.length > 0) {
+          return res.json({ category_id: results[0].category_id });
+        }
+  
+        db.query(
+          "INSERT INTO SpendCategory (category_name) VALUES (?)",
+          [category_name],
+          (err, result) => {
+            if (err) return res.status(500).json({ error: "Insert error" });
+            res.json({ category_id: result.insertId });
+          }
+        );
+      }
+    );
+  });
+
+  // GET BUDGETS
+app.get('/budgets/:userId',(req,res)=>{
+    const {userId} = req.params;
+  
+    db.query(
+      `SELECT B.budget_id, S.category_name, B.monthly_limit,
+       IFNULL(SUM(T.transaction_amount),0) AS spent
+       FROM Budget B
+       JOIN SpendCategory S ON B.category_id = S.category_id
+       LEFT JOIN Transactions T
+         ON T.category_id = B.category_id AND T.user_id = B.user_id
+       WHERE B.user_id = ?
+       GROUP BY B.budget_id`,
+      [userId],
+      (err,results)=>{
+        if(err) return res.status(500).json({error:"Database error"});
+        res.json(results);
+      }
+    );
+  });
+
+  // DELETE BUDGET
+app.delete('/budget/:id',(req,res)=>{
+    const {id} = req.params;
+  
+    db.query(
+      `DELETE FROM Budget WHERE budget_id=?`,
+      [id],
+      err => {
+        if(err) return res.status(500).json({error:"Database error"});
+        res.json({message:"Budget deleted"});
+      }
+    );
+  });
