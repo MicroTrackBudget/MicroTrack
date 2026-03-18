@@ -116,6 +116,7 @@ app.post('/verifyUser', (req, res) => {
     res.json({ message: 'User verified', verified: true });
   });
 });
+
 // Check if email exists (for password reset)
 app.post('/checkEmail', (req, res) => {
   const { email } = req.body;
@@ -126,7 +127,6 @@ app.post('/checkEmail', (req, res) => {
     res.json({ message: 'Email exists', exists: true });
   });
 });
-
 
 app.get('/budgets/:userId', (req, res) => {
   const { userId } = req.params;
@@ -163,6 +163,29 @@ app.post('/createBudget', (req, res) => {
   });
 });
 
+// Add purchase - MANUAL CATEGORY (no budget linkage)
+app.post('/addPurchase', (req, res) => {
+  const { user_id, category_id, transaction_amount, description } = req.body;
+  
+  if (!user_id || !category_id || !transaction_amount) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  const query = 'INSERT INTO Transactions (transaction_amount, transaction_date, user_id, category_id) VALUES (?, NOW(), ?, ?)';
+  
+  db.query(query, [transaction_amount, user_id, category_id], (err, result) => {
+    if (err) {
+      console.error('Add purchase error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.status(201).json({ 
+      message: 'Purchase saved successfully',
+      transactionId: result.insertId
+    });
+  });
+});
+
+// Add expense (with budget linkage)
 app.post('/addExpense', (req, res) => {
   const { budget_id, expense_amount, description } = req.body;
   if (!budget_id || !expense_amount) {
