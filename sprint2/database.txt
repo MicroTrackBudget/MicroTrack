@@ -14,9 +14,10 @@ CREATE TABLE `transactions` (
   `transaction_date` date NOT NULL,
   `user_id` int NOT NULL,
   `category_id` int NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`transaction_id`),
   KEY `user_id` (`user_id`),
   KEY `category_id` (`category_id`),
   CONSTRAINT `transactions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   CONSTRAINT `transactions_ibfk_2` FOREIGN KEY (`category_id`) REFERENCES `spendcategory` (`category_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

@@ -1,5 +1,6 @@
 const mysql = require('mysql2');
 const express = require('express');
+const bcrypt = require('bcrypt');
 const cors = require('cors');
 require('dotenv').config();
 
@@ -71,15 +72,19 @@ app.post('/register', (req, res) => {
     return res.status(400).json({ error: 'All fields required' });
   }
   
-  const query = 'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)';
-  db.query(query, [username, email, password], (err, result) => {
-    if (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        return res.status(409).json({ error: 'Email already exists' });
+  bcrypt.hash(password, 10, (err, hashedPassword) => {
+    if (err) return res.status(500).json({ error: 'Password hashing failed' });
+    
+    const query = 'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)';
+    db.query(query, [username, email, hashedPassword], (err, result) => {
+      if (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+          return res.status(409).json({ error: 'Email already exists' });
+        }
+        return res.status(500).json({ error: 'Database error' });
       }
-      return res.status(500).json({ error: 'Database error' });
-    }
-    res.status(201).json({ message: 'User registered', userId: result.insertId });
+      res.status(201).json({ message: 'User registered', userId: result.insertId });
+    });
   });
 });
 
@@ -89,11 +94,16 @@ app.post('/login', (req, res) => {
     return res.status(400).json({ error: 'Email and password required' });
   }
   
-  const query = 'SELECT * FROM Users WHERE email = ? AND password = ?';
-  db.query(query, [email, password], (err, results) => {
+  const query = 'SELECT * FROM Users WHERE email = ?';
+  db.query(query, [email], (err, results) => {
     if (err) return res.status(500).json({ error: 'Database error' });
     if (results.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
-    res.json({ message: 'Login successful', user: results[0] });
+    
+    bcrypt.compare(password, results[0].password, (err, isMatch) => {
+      if (err) return res.status(500).json({ error: 'Login failed' });
+      if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
+      res.json({ message: 'Login successful', user: { user_id: results[0].user_id, email: results[0].email, username: results[0].username } });
+    });
   });
 });
 
@@ -103,11 +113,15 @@ app.post('/resetPassword', (req, res) => {
     return res.status(400).json({ error: 'Email and new password required' });
   }
   
-  const query = 'UPDATE Users SET password = ? WHERE email = ?';
-  db.query(query, [newPassword, email], (err, result) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
-    if (result.affectedRows === 0) return res.status(404).json({ error: 'User not found' });
-    res.json({ message: 'Password reset successfully' });
+  bcrypt.hash(newPassword, 10, (err, hashedPassword) => {
+    if (err) return res.status(500).json({ error: 'Password hashing failed' });
+    
+    const query = 'UPDATE Users SET password = ? WHERE email = ?';
+    db.query(query, [hashedPassword, email], (err, result) => {
+      if (err) return res.status(500).json({ error: 'Database error' });
+      if (result.affectedRows === 0) return res.status(404).json({ error: 'User not found' });
+      res.json({ message: 'Password reset successfully' });
+    });
   });
 });
 
@@ -135,9 +149,17 @@ app.post('/checkEmail', (req, res) => {
 
 app.get('/budgets/:userId', (req, res) => {
   const { userId } = req.params;
-  const query = 'SELECT * FROM Budget WHERE user_id = ?';
+  console.log('Getting budgets for user:', userId);
+  const query = `SELECT b.*, c.category_name
+                 FROM Budget b
+                 LEFT JOIN SpendCategory c ON b.category_id = c.category_id
+                 WHERE b.user_id = ?`;
   db.query(query, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: 'Database error' });
+    if (err) {
+      console.error('Budget query error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    console.log('Budget results:', results);
     res.json(results);
   });
 });
@@ -170,7 +192,8 @@ app.post('/createBudget', (req, res) => {
 
 // ===== TRANSACTION ENDPOINTS =====
 
-// Add purchase - MANUAL CATEGORY (no budget linkage)
+// Add purchase - manual
+
 app.post('/addPurchase', (req, res) => {
   const { user_id, category_id, transaction_amount, description } = req.body;
   
@@ -180,9 +203,13 @@ app.post('/addPurchase', (req, res) => {
     return res.status(400).json({ error: 'Missing required fields' });
   }
   
-  const query = 'INSERT INTO Transactions (transaction_amount, transaction_date, user_id, category_id) VALUES (?, NOW(), ?, ?)';
+  if (typeof transaction_amount !== 'number' || transaction_amount <= 0) {
+    return res.status(400).json({ error: 'Transaction amount must be a positive number' });
+  }
   
-  db.query(query, [transaction_amount, user_id, category_id], (err, result) => {
+  const query = 'INSERT INTO Transactions (transaction_amount, transaction_date, user_id, category_id, description) VALUES (?, NOW(), ?, ?, ?)';
+  
+  db.query(query, [transaction_amount, user_id, category_id, description || null], (err, result) => {
     if (err) {
       console.error('Add purchase error:', err);
       return res.status(500).json({ error: 'Database error: ' + err.message });
@@ -195,11 +222,16 @@ app.post('/addPurchase', (req, res) => {
   });
 });
 
-// Add expense (with budget linkage)
+// Add expense -liked to budget
+
 app.post('/addExpense', (req, res) => {
   const { budget_id, expense_amount, description } = req.body;
   if (!budget_id || !expense_amount) {
     return res.status(400).json({ error: 'Invalid input' });
+  }
+  
+  if (typeof expense_amount !== 'number' || expense_amount <= 0) {
+    return res.status(400).json({ error: 'Expense amount must be a positive number' });
   }
   
   const findBudget = 'SELECT user_id, category_id, remaining_amount FROM Budget WHERE budget_id = ?';
@@ -210,9 +242,9 @@ app.post('/addExpense', (req, res) => {
     const { user_id, category_id, remaining_amount } = results[0];
     const newRemaining = remaining_amount - expense_amount;
     
-    const insertTransaction = 'INSERT INTO Transactions (transaction_amount, transaction_date, user_id, category_id) VALUES (?, NOW(), ?, ?)';
+    const insertTransaction = 'INSERT INTO Transactions (transaction_amount, transaction_date, user_id, category_id, description) VALUES (?, NOW(), ?, ?, ?)';
     
-    db.query(insertTransaction, [expense_amount, user_id, category_id], (err2) => {
+    db.query(insertTransaction, [expense_amount, user_id, category_id, description || null], (err2) => {
       if (err2) return res.status(500).json({ error: 'Database error' });
       
       const updateBudget = 'UPDATE Budget SET remaining_amount = ? WHERE budget_id = ?';
