@@ -193,6 +193,33 @@ app.delete('/budget/:id',(req,res)=>{
   );
 });
 
+// GET SPENDING REPORT
+app.get('/report/:userId', (req, res) => {
+
+  const { userId } = req.params;
+
+  const query = `
+    SELECT 
+      S.category_name,
+      COUNT(T.transaction_id) AS total_transactions,
+      IFNULL(SUM(T.transaction_amount), 0) AS total_spent
+    FROM SpendCategory S
+    LEFT JOIN Transactions T
+      ON S.category_id = T.category_id
+      AND T.user_id = ?
+    GROUP BY S.category_id
+  `;
+
+  db.query(query, [userId], (err, results) => {
+
+    if (err) return res.status(500).json({ error: "Database error" });
+
+    res.json(results);
+
+  });
+
+});
+
 
 // START SERVER
 
