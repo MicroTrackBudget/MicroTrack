@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBud - Home</title>
+    <link rel="stylesheet" href="appstyles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="status-bar">
+                    <span id="currentTime"></span>
+                <div class="menu-wrapper">
+        <span class="menu-dots" onclick="toggleMenu()">●●●</span>
+        <div class="menu-dropdown" id="menuDropdown">
+            <div onclick="logout()">Logout</div>
+        </div>
+    </div>  
+                </div>
+                
+                <div class="header">
+                    BudgetBud
+                </div>
+              
+                <div class="content">
+                    <div class="summary-box">
+                        <div class="summary-label">Monthly Budget Remaining</div>
+                        <div class="summary-value" id="totalRemaining">$0.00</div>
+                        <div class="summary-label" style="margin-top: 5px;">of <span id="totalBudget">$0.00</span></div>
+                    </div>
+                    
+                    <div class="alert-box" id="alertBox" style="display: none;">
+                        ⚠️ <span id="alertMessage"></span>
+                    </div>
+                    
+                    <div class="section-title">Active Budgets</div>
+                    
+                    <div id="budgetList">
+                        <div style="text-align: center; padding: 40px 20px; color: #999;">
+                            <p style="font-size: 48px; margin-bottom: 10px;">📊</p>
+                            <p>No budgets yet!</p>
+                            <p style="font-size: 13px; margin-top: 10px;">Click on "Budgets" below to create your first budget</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-bar">
+                    <div class="nav-item active">
+                        <a href="home.html" class="nav-icon">Home</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="addpurchase.html" class="nav-icon">Add</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="budget.html" class="nav-icon">Budgets</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="pricetracker.html" class="nav-icon">Prices</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+
+    //Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+
+    function toggleMenu() {
+    const menu = document.getElementById('menuDropdown');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function logout() {
+    localStorage.removeItem('isLoggedIn');
+    window.location.href = 'index.html';
+}
+
+//Close when clicking outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('menuDropdown');
+    if (!e.target.closest('.menu-wrapper') && menu) {
+        menu.style.display = 'none';
+    }
+});
+    
+//Check if user is logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+        
+//Load budgets from database
+        async function loadBudgets() {
+            const userId = localStorage.getItem('userId');
+            
+            if (!userId) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:3000/budgets/${userId}`);
+                const budgets = await response.json();
+                
+                const budgetList = document.getElementById('budgetList');
+                
+                if (!budgets || budgets.length === 0) {
+                    budgetList.innerHTML = `
+                        <div style="text-align: center; padding: 40px 20px; color: #999;">
+                            <p style="font-size: 48px; margin-bottom: 10px;">📊</p>
+                            <p>No budgets yet!</p>
+                            <p style="font-size: 13px; margin-top: 10px;">Click on "Budgets" below to create your first budget</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Category mapping
+                const categories = {
+                    1: 'Food',
+                    2: 'Clothing',
+                    3: 'Entertainment',
+                    4: 'Electronics'
+                };
+                
+                budgetList.innerHTML = '';
+                let totalBudget = 0;
+                
+                budgets.forEach(budget => {
+                    const categoryName = budget.category_name || categories[budget.category_id] || 'Budget';
+                    const amount = parseFloat(budget.monthly_limit);
+                    totalBudget += amount;
+                    
+                    const budgetCard = `
+                        <div class="budget-card">
+                            <div class="budget-header">
+                                <span>💰 ${categoryName}</span>
+                                <span>$${amount.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `;
+                    budgetList.innerHTML += budgetCard;
+                });
+                
+                // Update total
+                document.getElementById('totalRemaining').textContent = `$${totalBudget.toFixed(2)}`;
+                document.getElementById('totalBudget').textContent = `$${totalBudget.toFixed(2)}`;
+                
+            } catch (error) {
+                console.error('Error loading budgets:', error);
+            }
+        }
+        
+        //Load budgets on page load
+        loadBudgets();
+    </script>
+</body>
+</html>

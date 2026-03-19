@@ -53,6 +53,18 @@ CREATE TABLE PriceHistory
   FOREIGN KEY (product_id) REFERENCES Product(product_id)
 );
 
+CREATE TABLE SavingsGoal
+(
+  goal_id INT AUTO_INCREMENT PRIMARY KEY,
+  goal_name VARCHAR(100) NOT NULL,
+  target_amount DECIMAL(10,2) NOT NULL,
+  saved_amount DECIMAL(10,2) NOT NULL,
+  remaining_goal DECIMAL(10,2) NOT NULL,
+  created_at DATETIME NOT NULL,
+  user_id INT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
 -- Users
 INSERT INTO Users (username, email, password)
 VALUES
@@ -89,3 +101,4 @@ VALUES
 (59.99, '2026-01-15', 1),
 (49.99, '2026-02-01', 1),
 (199.99, '2026-02-05', 2);
+
