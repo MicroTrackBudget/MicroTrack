@@ -103,7 +103,7 @@ app.post('/api/resetPassword', (req, res) => {
                 if (result.affectedRows === 0)
                     return res.status(404).json({ error: "User not found" });
 
-                res.json({ success: true });
+                    res.json({ success: true });
             }
         );
     });
@@ -412,4 +412,57 @@ app.get('/api/savings/latest', async (req, res) => {
         console.error(err);
         res.status(500).json({ error: "Could not fetch latest goal" });
     }
+});
+
+app.post('/api/checkEmail', (req, res) => {
+    const { email } = req.body;
+
+    db.query(
+        'SELECT * FROM Users WHERE email = ?',
+        [email],
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            res.json({ exists: results.length > 0 });
+        }
+    );
+});
+
+app.post('/verifyUser', (req, res) => {
+    const { email, username } = req.body;
+
+    if (!email || !username) {
+        return res.status(400).json({ error: "Missing fields" });
+    }
+
+    db.query(
+        'SELECT * FROM Users WHERE email = ? AND username = ?',
+        [email, username],
+        (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            res.json({ verified: results.length > 0 });
+        }
+    );
+});
+
+app.delete('/budget/:id', (req, res) => {
+    const { id } = req.params;
+
+    db.query(
+        'DELETE FROM Budget WHERE budget_id = ?',
+        [id],
+        (err, result) => {
+            if (err) {
+                console.error(err);
+                return res.status(500).json({ error: err.message });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ error: "Budget not found" });
+            }
+
+            res.json({ success: true, message: "Budget deleted" });
+        }
+    );
 });

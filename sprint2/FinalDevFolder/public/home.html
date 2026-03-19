@@ -102,72 +102,68 @@ document.addEventListener('click', function(e) {
             window.location.href = 'index.html';
         }
         
-//Load budgets from localStorage
-        function loadBudgets() {
-            const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-            const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
-            
-            if (budgets.length === 0) {
-                return;
-            }
-            
-            const budgetList = document.getElementById('budgetList');
-            budgetList.innerHTML = '';
-            
-            let totalBudgetAmount = 0;
-            let totalSpent = 0;
-            let alerts = [];
-            
-            budgets.forEach(budget => {
+//Load budgets 
+async function loadBudgets() {
+    const userId = parseInt(localStorage.getItem("userId"));
+    if (!userId) return;
 
-        //Calculate spent amount for this budget
-                const budgetPurchases = purchases.filter(p => p.category === budget.name);
-                const spent = budgetPurchases.reduce((sum, p) => sum + parseFloat(p.total), 0);
-                const percentage = (spent / budget.limit * 100);
-                const remaining = (budget.limit - spent).toFixed(2);
-                
-                totalBudgetAmount += parseFloat(budget.limit);
-                totalSpent += spent;
-                
-        //Check for alerts
-                if (percentage >= 85) {
-                    alerts.push(`${budget.name} budget at ${percentage}% - $${remaining} remaining`);
-                }
-                
-        //Determine progress bar color
-                let progressClass = '';
-                if (percentage >= 100) progressClass = 'danger';
-                else if (percentage >= 75) progressClass = 'warning';
-                
-                const budgetCard = `
-                    <div class="budget-card">
-                        <div class="budget-header">
-                            <span>${budget.emoji} ${budget.name}</span>
-                            <span>$${spent.toFixed(2)} / $${budget.limit}</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill ${progressClass}" style="width: ${Math.min(percentage, 100)}%;"></div>
-                        </div>
-                        <div class="budget-info">
-                            <span>${percentage}% used</span>
-                            <span>$${remaining} left</span>
-                        </div>
-                    </div>
-                `;
-                budgetList.innerHTML += budgetCard;
-            });
-            
-        //Update totals
-            const totalRemaining = totalBudgetAmount - totalSpent;
-            document.getElementById('totalRemaining').textContent = `$${totalRemaining.toFixed(2)}`;
-            document.getElementById('totalBudget').textContent = `$${totalBudgetAmount.toFixed(2)}`;
-            
-        //Show alerts
-            if (alerts.length > 0) {
-                document.getElementById('alertBox').style.display = 'block';
-                document.getElementById('alertMessage').textContent = alerts[0];
-            }
+    const response = await fetch(`/budgets/${userId}`);
+    const budgets = await response.json();
+
+    const budgetList = document.getElementById('budgetList');
+
+    if (budgets.length === 0) {
+        return;
+    }
+
+    budgetList.innerHTML = '';
+
+    let totalBudgetAmount = 0;
+    let totalSpent = 0;
+    let alerts = [];
+
+    budgets.forEach(budget => {
+        const spent = parseFloat(budget.spent);
+        const limit = parseFloat(budget.monthly_limit);
+
+        const percentage = (spent / limit) * 100;
+        const remaining = (limit - spent).toFixed(2);
+
+        totalBudgetAmount += limit;
+        totalSpent += spent;
+
+        if (percentage >= 85) {
+            alerts.push(`${budget.category_name} budget at ${percentage.toFixed(0)}%`);
         }
+
+        let progressClass = '';
+        if (percentage >= 100) progressClass = 'danger';
+        else if (percentage >= 75) progressClass = 'warning';
+
+        const budgetCard = `
+            <div class="budget-card">
+                <div class="budget-header">
+                    <span>${budget.category_name}</span>
+                    <span>$${spent.toFixed(2)} / $${limit}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill ${progressClass}" style="width: ${Math.min(percentage, 100)}%;"></div>
+                </div>
+                <div class="budget-info">
+                    <span>${percentage.toFixed(0)}% used</span>
+                    <span>$${remaining} left</span>
+                </div>
+            </div>
+        `;
+
+        budgetList.innerHTML += budgetCard;
+    });
+
+    const totalRemaining = totalBudgetAmount - totalSpent;
+
+    document.getElementById('totalRemaining').textContent = `$${totalRemaining.toFixed(2)}`;
+    document.getElementById('totalBudget').textContent = `$${totalBudgetAmount.toFixed(2)}`;
+}
         
         //Load budgets on page load
         loadBudgets();

@@ -7,271 +7,247 @@
     <link rel="stylesheet" href="appstyles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="phone-frame">
-            <div class="screen">
-                <div class="status-bar">
-                    <span id="currentTime"></span>
-                    <div class="menu-wrapper">
-    <span class="menu-dots" onclick="toggleMenu()">●●●</span>
-    <div class="menu-dropdown" id="menuDropdown">
-        <div onclick="logout()">Logout</div>
-        </div>
-        </div>
-                </div>
-                <div class="header">Add Purchase</div>
-                
-                <div class="content">
-                    <form id="purchaseForm">
-                        <div class="form-group">
-                            <label class="form-label">Item Name</label>
-                            <input type="text" class="form-input" id="itemName" placeholder="Enter item name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Category</label>
-                            <select class="form-select" id="category" required>
-                                <option value="">Select category</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Store / Retailer</label>
-                            <input type="text" class="form-input" id="store" placeholder="Enter store name" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Price</label>
-                            <input type="number" class="form-input" id="price" placeholder="0.00" step="0.01" min="0" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Quantity</label>
-                            <input type="number" class="form-input" id="quantity" placeholder="1" value="1" min="1" required>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Tax Rate (%)</label>
-                            <input type="number" class="form-input" id="taxRate" placeholder="8" value="8" step="0.01" min="0" max="100">
-                        </div>
-                        
-                        <div class="calculated-box">
-                            <div class="calc-row">
-                                <span>Subtotal:</span>
-                                <span id="subtotal">$0.00</span>
-                            </div>
-                            <div class="calc-row">
-                                <span>Tax (<span id="taxPercent">8</span>%):</span>
-                                <span id="tax">$0.00</span>
-                            </div>
-                            <div class="calc-row total">
-                                <span>Total:</span>
-                                <span id="total">$0.00</span>
-                            </div>
-                            <div class="calc-row" style="margin-top: 12px; color: #4CAF50;">
-                                <span>Budget After Purchase:</span>
-                                <span id="budgetAfter">$0.00</span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Upload Receipt</label>
-                            <input type="file" id="receiptInput" accept="image/*" capture="environment">
-                            <small style="font-size:11px;color:#999;">
-                                 Upload a receipt to auto-fill
-                            </small>
-                        </div>       
-                        
-                        <button type="submit" class="btn-primary">Save Purchase</button>
-                        <button type="button" class="btn-secondary" onclick="document.getElementById('purchaseForm').reset(); calculateTotal();">Clear Form</button>
-                    </form>
-                </div>
-                
-                <div class="nav-bar">
-                    <div class="nav-item">
-                        <a href="home.html" class="nav-icon">Home</a>
-                    </div>
-                    <div class="nav-item active">
-                        <a href="addpurchase.html" class="nav-icon">Add</a>
-                    </div>
-                    <div class="nav-item">
-                        <a href="budget.html" class="nav-icon">Budgets</a>
-                    </div>
-                    <div class="nav-item">
-                        <a href="pricetracker.html" class="nav-icon">Prices</a>
-                    </div>
-                    <div class="nav-item">
-                        <a href="calculator.html" class="nav-icon">Calculator</a>
-                    </div>
-                </div>
-            </div>
+<div class="container">
+<div class="phone-frame">
+<div class="screen">
+
+<div class="status-bar">
+    <span id="currentTime"></span>
+    <div class="menu-wrapper">
+        <span class="menu-dots" onclick="toggleMenu()">●●●</span>
+        <div class="menu-dropdown" id="menuDropdown">
+            <div onclick="logout()">Logout</div>
         </div>
     </div>
-    
-    <script>
-        //Update time
-        function updateTime() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
-        }
-        updateTime();
-        setInterval(updateTime, 60000);
-        
-    function toggleMenu() {
+</div>
+
+<div class="header">Add Purchase</div>
+
+<div class="content">
+<form id="purchaseForm">
+
+<div class="form-group">
+    <label class="form-label">Category</label>
+    <select class="form-select" id="categorySelect" required>
+        <option value="">Select category</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Item Name</label>
+    <input type="text" class="form-input" id="itemName" placeholder="e.g., Groceries, Gas, Shirt" required>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Store / Retailer</label>
+    <input type="text" class="form-input" id="store" placeholder="e.g., Walmart, Target, Amazon">
+</div>
+
+<div class="form-group">
+    <label class="form-label">Price</label>
+    <input type="number" class="form-input" id="price" step="0.01" min="0" placeholder="0.00" required>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Quantity</label>
+    <input type="number" class="form-input" id="quantity" value="1" min="1" required>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Tax Rate (%)</label>
+    <input type="number" class="form-input" id="taxRate" value="8" step="0.01" min="0">
+</div>
+
+<div class="calculated-box">
+    <div class="calc-row">
+        <span>Subtotal:</span>
+        <span id="subtotal">$0.00</span>
+    </div>
+    <div class="calc-row">
+        <span>Tax (<span id="taxPercent">8</span>%):</span>
+        <span id="tax">$0.00</span>
+    </div>
+    <div class="calc-row total">
+        <span>Total:</span>
+        <span id="total">$0.00</span>
+    </div>
+</div>
+
+<button type="submit" class="btn-primary">Save Purchase</button>
+<button type="button" class="btn-secondary" onclick="document.getElementById('purchaseForm').reset();calculateTotal();loadCategories();">
+    Clear Form
+</button>
+
+</form>
+</div>
+
+<div class="nav-bar">
+    <div class="nav-item"><a href="home.html" class="nav-icon">Home</a></div>
+    <div class="nav-item active"><a href="addpurchase.html" class="nav-icon">Add</a></div>
+    <div class="nav-item"><a href="budget.html" class="nav-icon">Budgets</a></div>
+    <div class="nav-item"><a href="pricetracker.html" class="nav-icon">Prices</a></div>
+    <div class="nav-item">
+        <a href="calculator.html" class="nav-icon">Calculator</a>
+    </div>
+</div>
+
+</div>
+</div>
+</div>
+
+<script>
+/* ---------- TIME ---------- */
+function updateTime() {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+}
+updateTime();
+setInterval(updateTime, 60000);
+
+/* ---------- MENU ---------- */
+function toggleMenu() {
     const menu = document.getElementById('menuDropdown');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
 }
 
 function logout() {
-    localStorage.removeItem('isLoggedIn');
+    localStorage.clear();
     window.location.href = 'index.html';
 }
 
-//Close when clicking outside
-document.addEventListener('click', function(e) {
+document.addEventListener('click', e => {
     const menu = document.getElementById('menuDropdown');
     if (!e.target.closest('.menu-wrapper') && menu) {
         menu.style.display = 'none';
     }
-}); 
+});
 
-    //Check if user is logged in
-        if (!localStorage.getItem('isLoggedIn')) {
-            window.location.href = 'index.html';
-        }
+/* ---------- LOGIN CHECK ---------- */
+if (!localStorage.getItem('isLoggedIn')) {
+    window.location.href = 'index.html';
+}
+
+/* ---------- CALCULATIONS ---------- */
+const priceEl = document.getElementById('price');
+const quantityEl = document.getElementById('quantity');
+const taxRateEl = document.getElementById('taxRate');
+const subtotalEl = document.getElementById('subtotal');
+const taxEl = document.getElementById('tax');
+const totalEl = document.getElementById('total');
+const taxPercent = document.getElementById('taxPercent');
+
+function calculateTotal() {
+    const price = parseFloat(priceEl.value) || 0;
+    const qty = parseInt(quantityEl.value) || 1;
+    const taxRate = parseFloat(taxRateEl.value) || 0;
+
+    const subtotal = price * qty;
+    const tax = subtotal * (taxRate / 100);
+    const total = subtotal + tax;
+
+    subtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+    taxEl.textContent = `$${tax.toFixed(2)}`;
+    taxPercent.textContent = taxRate.toFixed(1);
+    totalEl.textContent = `$${total.toFixed(2)}`;
+}
+
+priceEl.addEventListener('input', calculateTotal);
+quantityEl.addEventListener('input', calculateTotal);
+taxRateEl.addEventListener('input', calculateTotal);
+
+/* ---------- LOAD CATEGORIES FROM DATABASE ---------- */
+async function loadCategories() {
+    try {
+        const categorySelect = document.getElementById('categorySelect');
+        categorySelect.innerHTML = '<option value="">Select category</option>';
         
-    //Load categories from budgets
-        function loadCategories() {
-            const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-            const categorySelect = document.getElementById('category');
-            
-            if (budgets.length === 0) {
-                categorySelect.innerHTML = '<option value="">No budgets created yet</option>';
-                return;
-            }
-            
-            categorySelect.innerHTML = '<option value="">Select category</option>';
-            budgets.forEach(budget => {
-                const option = document.createElement('option');
-                option.value = budget.name;
-                option.textContent = `${budget.emoji} ${budget.name}`;
-                categorySelect.appendChild(option);
-            });
-        }
+        // Categories matching SpendCategory table
+        const categories = [
+            { id: 1, name: 'Food', emoji: '🍕' },
+            { id: 2, name: 'Clothing', emoji: '👕' },
+            { id: 3, name: 'Entertainment', emoji: '🎬' },
+            { id: 4, name: 'Electronics', emoji: '📱' }
+        ];
         
-    //Calculate total in real-time
-        function calculateTotal() {
-            const price = parseFloat(document.getElementById('price').value) || 0;
-            const quantity = parseInt(document.getElementById('quantity').value) || 1;
-            const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
-            const category = document.getElementById('category').value;
-            
-            const subtotal = price * quantity;
-            const taxAmount = subtotal * (taxRate / 100);
-            const total = subtotal + taxAmount;
-            
-            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            document.getElementById('tax').textContent = `$${taxAmount.toFixed(2)}`;
-            document.getElementById('taxPercent').textContent = taxRate.toFixed(1);
-            document.getElementById('total').textContent = `$${total.toFixed(2)}`;
-            
-        //Calculate budget after purchase
-            if (category) {
-                const budgets = JSON.parse(localStorage.getItem('budgets') || '[]');
-                const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
-                const budget = budgets.find(b => b.name === category);
-                
-                if (budget) {
-                    const categoryPurchases = purchases.filter(p => p.category === category);
-                    const currentSpent = categoryPurchases.reduce((sum, p) => sum + parseFloat(p.total), 0);
-                    const afterPurchase = budget.limit - currentSpent - total;
-                    document.getElementById('budgetAfter').textContent = `$${afterPurchase.toFixed(2)}`;
-                    document.getElementById('budgetAfter').style.color = afterPurchase < 0 ? '#F44336' : '#4CAF50';
-                }
-            }
-        }
-        
-    //Add event listeners for real-time calculation
-        document.getElementById('price').addEventListener('input', calculateTotal);
-        document.getElementById('quantity').addEventListener('input', calculateTotal);
-        document.getElementById('taxRate').addEventListener('input', calculateTotal);
-        document.getElementById('category').addEventListener('change', calculateTotal);
-        
-    //Handle form submission
-        document.getElementById('purchaseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const purchase = {
-                id: Date.now(),
-                itemName: document.getElementById('itemName').value,
-                category: document.getElementById('category').value,
-                store: document.getElementById('store').value,
-                price: parseFloat(document.getElementById('price').value),
-                quantity: parseInt(document.getElementById('quantity').value),
-                taxRate: parseFloat(document.getElementById('taxRate').value),
-                subtotal: parseFloat(document.getElementById('subtotal').textContent.replace('$', '')),
-                tax: parseFloat(document.getElementById('tax').textContent.replace('$', '')),
-                total: parseFloat(document.getElementById('total').textContent.replace('$', '')),
-                date: new Date().toISOString()
-            };
-            
-        //Save to localStorage
-            const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
-            purchases.push(purchase);
-            localStorage.setItem('purchases', JSON.stringify(purchases));
-            
-        //Success message
-            alert('✅ Purchase saved successfully!');
-            
-        //Redirect to home
-            window.location.href = 'home.html';
+        categories.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = `${cat.emoji} ${cat.name}`;
+            categorySelect.appendChild(option);
         });
-        
-    //Load categories on page load
-        loadCategories();
+    } catch (error) {
+        console.error('Error loading categories:', error);
+    }
+}
 
-       //Save purchase 
-        document.getElementById('purchaseForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+/* ---------- SAVE PURCHASE TO DATABASE ---------- */
+document.getElementById('purchaseForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-    const purchases = JSON.parse(localStorage.getItem('purchases') || '[]');
+    const userId = localStorage.getItem('userId');
+    const categoryId = document.getElementById('categorySelect').value;
+    const expenseAmount = parseFloat(totalEl.textContent.replace('$', ''));
+    const itemName = document.getElementById('itemName').value;
 
-    purchases.push({
-        name: document.getElementById('itemName').value,
-        amount: parseFloat(document.getElementById('totalAmount').value),
-        date: new Date().toISOString()
-    });
+    console.log('=== SAVE PURCHASE DEBUG ===');
+    console.log('User ID:', userId);
+    console.log('Category ID:', categoryId);
+    console.log('Expense Amount:', expenseAmount);
+    console.log('Item Name:', itemName);
 
-    localStorage.setItem('purchases', JSON.stringify(purchases));
+    if (!userId) {
+        alert('❌ Not logged in! User ID is missing.');
+        console.error('No userId in localStorage');
+        return;
+    }
 
-    alert('✅ Purchase saved!');
-    this.reset();
-        }); 
+    if (!categoryId) {
+        alert('❌ Please select a category');
+        return;
+    }
 
-//Receipt scnanning function
-document.getElementById('receiptInput').addEventListener('change', async function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+    const requestData = {
+        user_id: parseInt(userId),
+        category_id: parseInt(categoryId),
+        transaction_amount: expenseAmount,
+        description: itemName
+    };
 
-    alert('📷 Scanning receipt');
+    console.log('Sending to server:', requestData);
 
     try {
-        const result = await Tesseract.recognize(file, 'eng');
-        const text = result.data.text;
+        const response = await fetch('http://localhost:3000/api/addPurchase', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestData)
+        });
 
-        const matches = text.match(/\$?\s?(\d+\.\d{2})/g);
-        if (matches && matches.length > 0) {
-            const lastAmount = matches[matches.length - 1].replace('$','');
-            document.getElementById('totalAmount').value = lastAmount;
+        console.log('Response status:', response.status);
+
+        const data = await response.json();
+    
+        console.log('Response data:', data);
+
+        if (response.ok) {
+            alert('✅ Purchase saved successfully!');
+            document.getElementById('purchaseForm').reset();
+            calculateTotal();
+            loadCategories();
+        } else {
+            console.error('Server error:', data);
+            alert('❌ ' + (data.error || 'Failed to save purchase'));
         }
-
-        alert('✅ Receipt scanned! Verify details.');
-        } catch (err) {
-        alert('❌ Could not read receipt clearly.');
-        console.error(err);
+    } catch (error) {
+        console.error('Full error:', error);
+        alert('❌ Could not save purchase: ' + error.message);
     }
 });
-    </script>
+
+
+/* ---------- LOAD CATEGORIES ON PAGE LOAD ---------- */
+loadCategories();
+</script>
 </body>
 </html>
