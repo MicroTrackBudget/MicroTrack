@@ -300,18 +300,18 @@
             const category_id = catData.category_id;
         
             //Create budget
-            const response = await fetch("/createBudget",{
-                method:"POST",
-                headers:{
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify({
-                    monthly_limit,
-                    weekly_limit:0,
-                    user_id,
-                    category_id
-                })
-            });
+            const response = await fetch("/api/createBudget",{
+    method:"POST",
+    headers:{
+        "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+        monthly_limit,
+        weekly_limit:0,
+        user_id,
+        category_id
+    })
+});
         
             const data = await response.json();
         

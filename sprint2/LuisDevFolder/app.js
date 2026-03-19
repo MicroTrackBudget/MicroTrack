@@ -1,24 +1,27 @@
-// app.js
 require('dotenv').config();
 const express = require('express');
-const bodyParser = require('body-parser');
 const mysql = require('mysql2');
 const scraper = require('./scraper');
+const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = 3000;
 
-app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(cors());
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+/* ================= DB ================= */
 
 const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
+    host: process.env.DB_HOST || "localhost",
+    user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
-  });
+    database: process.env.DB_NAME || "BudgetApp"
+});
 
-db.connect((err) => {
+db.connect(err => {
     if (err) {
         console.error('❌ MySQL connection failed:', err.message);
         return;
@@ -26,32 +29,37 @@ db.connect((err) => {
     console.log('✅ Connected to MySQL database!');
 });
 
+const dbAsync = db.promise(); // allows async/await
+
 /* ================= USERS ================= */
 
 app.post('/api/users', (req, res) => {
     const { fullName, email, password } = req.body;
+    if (!fullName || !email || !password) return res.status(400).json({ error: "All fields required" });
 
-    const query = 'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)';
-    db.query(query, [fullName, email, password], (err, result) => {
-        if (err) {
-            if (err.code === 'ER_DUP_ENTRY')
-                return res.status(400).json({ error: 'Email already exists' });
-            return res.status(500).json({ error: err.message });
+    db.query(
+        'INSERT INTO Users (username, email, password) VALUES (?, ?, ?)',
+        [fullName, email, password],
+        (err, result) => {
+            if (err) {
+                if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Email already exists' });
+                return res.status(500).json({ error: err.message });
+            }
+            res.json({ success: true, userId: result.insertId });
         }
-        res.json({ success: true, userId: result.insertId });
-    });
+    );
 });
 
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: "Missing fields" });
 
     db.query(
         'SELECT * FROM Users WHERE email = ? AND password = ?',
         [email, password],
         (err, results) => {
             if (err) return res.status(500).json({ error: err.message });
-            if (results.length === 0)
-                return res.status(400).json({ error: 'No account found with this email/password' });
+            if (results.length === 0) return res.status(400).json({ error: 'Invalid login' });
 
             res.json({
                 success: true,
@@ -62,12 +70,11 @@ app.post('/api/login', (req, res) => {
     );
 });
 
-/* ================= GET PRODUCTS ================= */
+/* ================= PRODUCTS ================= */
 
 app.get('/sprint2/api/products', (req, res) => {
     const user_id = req.query.user_id;
-    if (!user_id)
-        return res.status(400).json({ error: 'Missing user_id' });
+    if (!user_id) return res.status(400).json({ error: "Missing user_id" });
 
     db.query(
         'SELECT * FROM Product WHERE user_id = ?',
@@ -79,58 +86,39 @@ app.get('/sprint2/api/products', (req, res) => {
     );
 });
 
-/* ================= ADD PRODUCT ================= */
-
 app.post('/sprint2/api/products', async (req, res) => {
     const { product_name, store_location, product_url, user_id, target_price } = req.body;
-
-    if (!user_id)
-        return res.status(400).json({ error: 'Missing user_id' });
+    if (!product_name || !store_location || !product_url || !user_id) return res.status(400).json({ error: "Missing required fields" });
 
     let scrapedPrice = null;
 
     try {
-        switch (store_location.toLowerCase()) {
-
-            case 'walmart':
-                // 🔥 CLEAN WALMART URL (removes tracking parameters)
-                const cleanUrl = product_url.split('?')[0];
-                console.log("Scraping Walmart URL:", cleanUrl);
-
-                scrapedPrice = await scraper.getWalmartPrice(cleanUrl);
-                console.log("Scraped Price:", scrapedPrice);
-                break;
-
-            case 'amazon':
-                scrapedPrice = await scraper.getAmazonPrice(product_url);
-                break;
-
-            default:
-                scrapedPrice = null;
+        if (store_location.toLowerCase() === 'walmart') {
+            const cleanUrl = product_url.split('?')[0];
+            scrapedPrice = await scraper.getWalmartPrice(cleanUrl);
+        } else if (store_location.toLowerCase() === 'amazon') {
+            scrapedPrice = await scraper.getAmazonPrice(product_url);
         }
-
     } catch (err) {
-        console.error('Scraping error:', err.message);
+        console.error("Scraping error:", err.message);
     }
 
-    const finalPrice = scrapedPrice !== null ? scrapedPrice : null;
+    const finalPrice = scrapedPrice != null ? scrapedPrice : null;
 
     db.query(
         'INSERT INTO Product (product_name, store_location, product_url, current_price, target_price, user_id) VALUES (?, ?, ?, ?, ?, ?)',
         [product_name, store_location, product_url, finalPrice, target_price, user_id],
         (err, result) => {
-            if (err)
-                return res.status(500).json({ error: err.message });
+            if (err) return res.status(500).json({ error: err.message });
 
             const productId = result.insertId;
 
-            if (finalPrice !== null) {
+            if (finalPrice != null) {
                 db.query(
                     'INSERT INTO PriceHistory (product_id, price, price_date) VALUES (?, ?, NOW())',
                     [productId, finalPrice],
                     (err2) => {
-                        if (err2)
-                            console.error('Failed to insert PriceHistory:', err2.message);
+                        if (err2) console.error('Failed to insert PriceHistory:', err2.message);
                     }
                 );
             }
@@ -145,15 +133,14 @@ app.post('/sprint2/api/products', async (req, res) => {
     );
 });
 
-/* ================= UPDATE PRICES ================= */
+/* ================= UPDATE PRODUCT PRICES ================= */
 
 app.get('/sprint2/api/update-prices', async (req, res) => {
     const user_id = req.query.user_id;
-    if (!user_id)
-        return res.status(400).json({ error: 'Missing user_id' });
+    if (!user_id) return res.status(400).json({ error: "Missing user_id" });
 
     try {
-        const [products] = await db.promise().query(
+        const [products] = await dbAsync.query(
             'SELECT * FROM Product WHERE user_id = ?',
             [user_id]
         );
@@ -162,29 +149,24 @@ app.get('/sprint2/api/update-prices', async (req, res) => {
 
         for (let product of products) {
             let price = null;
-
-            switch (product.store_location.toLowerCase()) {
-
-                case 'walmart':
+            try {
+                if (product.store_location.toLowerCase() === 'walmart') {
                     const cleanUrl = product.product_url.split('?')[0];
                     price = await scraper.getWalmartPrice(cleanUrl);
-                    break;
-
-                case 'amazon':
+                } else if (product.store_location.toLowerCase() === 'amazon') {
                     price = await scraper.getAmazonPrice(product.product_url);
-                    break;
-
-                default:
-                    price = null;
+                }
+            } catch (err) {
+                console.error("Scraping error:", err.message);
             }
 
-            if (price !== null) {
-                await db.promise().query(
+            if (price != null) {
+                await dbAsync.query(
                     'UPDATE Product SET current_price = ? WHERE product_id = ?',
                     [price, product.product_id]
                 );
 
-                await db.promise().query(
+                await dbAsync.query(
                     'INSERT INTO PriceHistory (product_id, price, price_date) VALUES (?, ?, NOW())',
                     [product.product_id, price]
                 );
@@ -201,16 +183,146 @@ app.get('/sprint2/api/update-prices', async (req, res) => {
     }
 });
 
-/* ================= TEST ROUTE ================= */
+/* ================= BUDGETS ================= */
 
-app.get('/sprint2/test-walmart', async (req, res) => {
-    const testUrl = 'https://www.walmart.com/ip/18988764263';
+app.post('/createBudget', (req,res)=>{
+    const { monthly_limit, weekly_limit, user_id, category_id } = req.body;
+    if (!monthly_limit || !user_id || !category_id) return res.status(400).json({ error: "Missing required fields" });
+
+    db.query(
+        `INSERT INTO Budget (monthly_limit, weekly_limit, user_id, category_id) VALUES (?, ?, ?, ?)`,
+        [monthly_limit, weekly_limit || 0, user_id, category_id],
+        (err, result) => {
+            if(err) return res.status(500).json({ error:"Database error" });
+            res.json({ message:"Budget created", budgetId: result.insertId });
+        }
+    );
+});
+
+app.post("/getOrCreateCategory", (req, res) => {
+    const { category_name } = req.body;
+    if (!category_name) return res.status(400).json({ error:"Missing category_name" });
+
+    db.query(
+        "SELECT category_id FROM SpendCategory WHERE category_name = ?",
+        [category_name], 
+        (err, results) => {
+            if(err) return res.status(500).json({ error:"DB error" });
+            if(results.length > 0) return res.json({ category_id: results[0].category_id });
+
+            db.query(
+                "INSERT INTO SpendCategory (category_name) VALUES (?)",
+                [category_name],
+                (err2, result2) => {
+                    if(err2) return res.status(500).json({ error:"Insert error" });
+                    res.json({ category_id: result2.insertId });
+                }
+            );
+        }
+    );
+});
+
+app.get('/budgets/:userId', (req,res)=>{
+    const userId = req.params.userId;
+
+    db.query(
+        `SELECT B.budget_id, S.category_name, B.monthly_limit,
+                IFNULL(SUM(T.transaction_amount),0) AS spent
+         FROM Budget B
+         JOIN SpendCategory S ON B.category_id = S.category_id
+         LEFT JOIN Transactions T ON T.category_id = B.category_id AND T.user_id = B.user_id
+         WHERE B.user_id = ?
+         GROUP BY B.budget_id`,
+        [userId],
+        (err, results) => {
+            if(err) return res.status(500).json({ error:"Database error" });
+            res.json(results);
+        }
+    );
+});
+
+app.delete('/budget/:id', (req,res)=>{
+    const { id } = req.params;
+    db.query(
+        `DELETE FROM Budget WHERE budget_id=?`,
+        [id],
+        err => {
+            if(err) return res.status(500).json({ error:"Database error" });
+            res.json({ message:"Budget deleted" });
+        }
+    );
+});
+
+/* ================= SAVINGS ================= */
+
+// Calculate remaining savings goal
+app.post("/api/savings/calculate", async (req, res) => {
+    const { userId, goalId, targetAmount, savedAmount } = req.body;
+    if(targetAmount == null || savedAmount == null) return res.status(400).json({ error: "Missing amounts" });
+
+    const remainingGoal = targetAmount - savedAmount;
+    if(!userId || !goalId) return res.json({ remainingGoal });
 
     try {
-        const price = await scraper.getWalmartPrice(testUrl);
-        res.send(price ? `✅ Walmart price: $${price}` : '⚠️ Price not found');
-    } catch (err) {
-        res.status(500).send(`❌ Error: ${err.message}`);
+        const [rows] = await dbAsync.query(
+            `SELECT * FROM SavingsGoal WHERE user_id = ? AND goal_id = ?`,
+            [userId, goalId]
+        );
+        if(rows.length === 0) return res.json({ remainingGoal });
+
+        res.json({
+            remainingGoal,
+            goal_name: rows[0].goal_name,
+            target_amount: rows[0].target_amount,
+            saved_amount: rows[0].saved_amount
+        });
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ remainingGoal });
+    }
+});
+
+// Save a savings goal
+app.post("/api/savings/save", async (req, res) => {
+    const { userId, goalName, targetAmount, savedAmount } = req.body;
+    if(!userId || !goalName || targetAmount == null || savedAmount == null) 
+        return res.status(400).json({ error: "Missing required fields" });
+
+    const remainingGoal = targetAmount - savedAmount;
+
+    try {
+        const [result] = await dbAsync.query(
+            `INSERT INTO SavingsGoal
+             (user_id, goal_name, target_amount, saved_amount, remaining_goal, created_at)
+             VALUES (?, ?, ?, ?, ?, NOW())`,
+            [userId, goalName, targetAmount, savedAmount, remainingGoal]
+        );
+        res.json({ success: true, goalId: result.insertId, remainingGoal });
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ error:"Could not save savings goal." });
+    }
+});
+
+// Load latest saved goal
+app.get("/api/savings/latest", async (req, res) => {
+    const userId = req.query.userId;
+    if(!userId) return res.status(400).json({ error:"userId is required" });
+
+    try {
+        const [rows] = await dbAsync.query(
+            `SELECT goal_id, goal_name, target_amount, saved_amount, remaining_goal, created_at
+             FROM SavingsGoal
+             WHERE user_id = ?
+             ORDER BY created_at DESC
+             LIMIT 1`,
+            [userId]
+        );
+        if(rows.length === 0) return res.status(404).json({ error:"No savings goals found" });
+        res.json(rows[0]);
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({ error:"Could not load latest savings goal" });
     }
 });
 
