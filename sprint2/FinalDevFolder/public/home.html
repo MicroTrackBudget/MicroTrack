@@ -70,103 +70,125 @@
     <script>
 
     //Update time
-        function updateTime() {
-            const now = new Date();
-            const hours = now.getHours();
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
-        }
-        updateTime();
-        setInterval(updateTime, 60000);
-
+    function updateTime() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes().toString().padStart(2, '0');
+        document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+    }
+    updateTime();
+    setInterval(updateTime, 60000);
+        
     function toggleMenu() {
     const menu = document.getElementById('menuDropdown');
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
-}
-
-function logout() {
-    localStorage.removeItem('isLoggedIn');
-    window.location.href = 'index.html';
-}
-
-//Close when clicking outside
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById('menuDropdown');
-    if (!e.target.closest('.menu-wrapper') && menu) {
-        menu.style.display = 'none';
     }
-});
     
-//Check if user is logged in
-        if (!localStorage.getItem('isLoggedIn')) {
-            window.location.href = 'index.html';
-        }
-        
-//Load budgets 
-async function loadBudgets() {
-    const userId = parseInt(localStorage.getItem("userId"));
-    if (!userId) return;
-
-    const response = await fetch(`/budgets/${userId}`);
-    const budgets = await response.json();
-
-    const budgetList = document.getElementById('budgetList');
-
-    if (budgets.length === 0) {
-        return;
+    function logout() {
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'index.html';
     }
 
-    budgetList.innerHTML = '';
-
-    let totalBudgetAmount = 0;
-    let totalSpent = 0;
-    let alerts = [];
-
-    budgets.forEach(budget => {
-        const spent = parseFloat(budget.spent);
-        const limit = parseFloat(budget.monthly_limit);
-
-        const percentage = (spent / limit) * 100;
-        const remaining = (limit - spent).toFixed(2);
-
-        totalBudgetAmount += limit;
-        totalSpent += spent;
-
-        if (percentage >= 85) {
-            alerts.push(`${budget.category_name} budget at ${percentage.toFixed(0)}%`);
+    //Close when clicking outside
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('menuDropdown');
+        if (!e.target.closest('.menu-wrapper') && menu) {
+            menu.style.display = 'none';
         }
-
-        let progressClass = '';
-        if (percentage >= 100) progressClass = 'danger';
-        else if (percentage >= 75) progressClass = 'warning';
-
-        const budgetCard = `
-            <div class="budget-card">
-                <div class="budget-header">
-                    <span>${budget.category_name}</span>
-                    <span>$${spent.toFixed(2)} / $${limit}</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill ${progressClass}" style="width: ${Math.min(percentage, 100)}%;"></div>
-                </div>
-                <div class="budget-info">
-                    <span>${percentage.toFixed(0)}% used</span>
-                    <span>$${remaining} left</span>
-                </div>
-            </div>
-        `;
-
-        budgetList.innerHTML += budgetCard;
     });
+    
+    //Check if user is logged in
+    if (!localStorage.getItem('isLoggedIn')) {
+        window.location.href = 'index.html';
+    }
 
-    const totalRemaining = totalBudgetAmount - totalSpent;
-
-    document.getElementById('totalRemaining').textContent = `$${totalRemaining.toFixed(2)}`;
-    document.getElementById('totalBudget').textContent = `$${totalBudgetAmount.toFixed(2)}`;
-}
+    const categoryNames = {
+        "🛒": "Groceries",
+        "👕": "Clothing",
+        "📱": "Electronics",
+        "🎮": "Gaming",
+        "🍕": "Food",
+        "⛽": "Gas",
+        "🏠": "Housing",
+        "✈️": "Travel",
+        "🏥": "Healthcare",
+        "📚": "Education",
+        "🎬": "Entertainment",
+        "💄": "Beauty"
+    };
+    
+    function getEmojiFromCategory(categoryName) {
+        return Object.keys(categoryNames)
+            .find(key => categoryNames[key] === categoryName) || '';
+    }
+    
+    //Load budgets 
+    async function loadBudgets() {
+        const userId = parseInt(localStorage.getItem("userId"));
+        if (!userId) return;
         
-        //Load budgets on page load
-        loadBudgets();
+        const response = await fetch(`/budgets/${userId}`);
+        const budgets = await response.json();
+
+        const budgetList = document.getElementById('budgetList');
+
+        if (budgets.length === 0) {
+            return;
+        }
+        
+        budgetList.innerHTML = '';
+
+        let totalBudgetAmount = 0;
+        let totalSpent = 0;
+        let alerts = [];
+
+        budgets.forEach(budget => {
+            const spent = parseFloat(budget.spent);
+            const limit = parseFloat(budget.monthly_limit);
+
+            const percentage = (spent / limit) * 100;
+            const remaining = (limit - spent).toFixed(2);
+
+            totalBudgetAmount += limit;
+            totalSpent += spent;
+
+            if (percentage >= 85) {
+                alerts.push(`${budget.category_name} budget at ${percentage.toFixed(0)}%`);
+            }
+
+            let progressClass = '';
+            if (percentage >= 100) progressClass = 'danger';
+            else if (percentage >= 75) progressClass = 'warning';
+
+            const emoji = getEmojiFromCategory(budget.category_name);
+
+            const budgetCard = `
+                <div class="budget-card">
+                    <div class="budget-header">
+                        <span>${emoji} ${budget.category_name}</span>
+                        <span>$${spent.toFixed(2)} / $${limit}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${progressClass}" style="width: ${Math.min(percentage, 100)}%;"></div>
+                    </div>
+                    <div class="budget-info">
+                        <span>${percentage.toFixed(0)}% used</span>
+                        <span>$${remaining} left</span>
+                    </div>
+                </div>
+            `;
+
+            budgetList.innerHTML += budgetCard;
+        });
+
+        const totalRemaining = totalBudgetAmount - totalSpent;
+
+        document.getElementById('totalRemaining').textContent = `$${totalRemaining.toFixed(2)}`;
+        document.getElementById('totalBudget').textContent = `$${totalBudgetAmount.toFixed(2)}`;
+    }
+    
+    //Load budgets on page load
+    loadBudgets();
     </script>
 </body>
 </html>
