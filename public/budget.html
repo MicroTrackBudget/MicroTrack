@@ -129,7 +129,6 @@
    </div>
   
    <script>
-
         //Update time
         function updateTime() {
             const now = new Date(); // Get current time
@@ -204,6 +203,7 @@
             document.getElementById('budgetModal').classList.remove('active');
         }
 
+        //View spending report
         async function viewReport() {
 
             const userId = parseInt(localStorage.getItem("userId"));
@@ -248,7 +248,7 @@
                 console.error(err);
                 alert("Error loading report");
             }
-            }
+        }
         
         //Fetch and display budgets from backend
         async function loadBudgets(){
