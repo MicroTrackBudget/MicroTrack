@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const scraper = require('./scraper');
 const cors = require('cors');
 const path = require('path');
-const bcrypt = require('bcrypt'); // ✅ ADDED
+const bcrypt = require('bcrypt'); 
 
 const app = express();
 const PORT = 3000;
@@ -13,8 +13,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* ================= DB ================= */
-
+// DB 
 const db = mysql.createConnection({
     host: process.env.DB_HOST || "localhost",
     user: process.env.DB_USER || "root",
@@ -32,7 +31,7 @@ db.connect(err => {
 
 const dbAsync = db.promise();
 
-/* ================= AUTH ================= */
+//AUTH 
 
 // Register
 app.post('/api/register', (req, res) => {
@@ -109,9 +108,9 @@ app.post('/api/resetPassword', (req, res) => {
     });
 });
 
-/* ================= TRANSACTIONS ================= */
+//TRANSACTIONS
 
-// ✅ ADD PURCHASE (for your HTML)
+//Add Purchase
 app.post('/api/addPurchase', (req, res) => {
     const { user_id, category_id, transaction_amount, description } = req.body;
 
@@ -137,7 +136,7 @@ app.post('/api/addPurchase', (req, res) => {
     );
 });
 
-/* ================= PRODUCTS ================= */
+//PRODUCTS
 
 app.get('/sprint2/api/products', (req, res) => {
     const user_id = req.query.user_id;
@@ -191,7 +190,7 @@ app.post('/sprint2/api/products', async (req, res) => {
     );
 });
 
-/* ================= UPDATE PRODUCT PRICES ================= */
+//UPDATE PRODUCT PRICES 
 
 app.get('/sprint2/api/update-prices', async (req, res) => {
     const user_id = req.query.user_id;
@@ -239,7 +238,7 @@ app.get('/sprint2/api/update-prices', async (req, res) => {
     }
 });
 
-/* ================= CATEGORIES ================= */
+//CATEGORIES
 
 // Get or create category
 app.post('/getOrCreateCategory', (req, res) => {
@@ -272,7 +271,7 @@ app.post('/getOrCreateCategory', (req, res) => {
     );
 });
 
-/* ================= BUDGETS ================= */
+//BUDGETS
 
 app.post('/api/createBudget', (req,res)=>{
     const { monthly_limit, weekly_limit, user_id, category_id } = req.body;
@@ -312,10 +311,7 @@ app.get('/budgets/:userId', (req,res)=>{
     );
 });
 
-/* ================= SAVINGS ================= */
-// (unchanged — kept your original)
-
-/* ================= START SERVER ================= */
+//START SERVER
 
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
@@ -377,7 +373,7 @@ app.post("/api/savings/save", async (req, res) => {
     }
 });
 
-/* ================= SAVINGS ================= */
+//SAVINGS 
 
 // Calculate savings goal (frontend calls /api/savings/calculate)
 app.post('/api/savings/calculate', (req, res) => {
@@ -465,4 +461,30 @@ app.delete('/budget/:id', (req, res) => {
             res.json({ success: true, message: "Budget deleted" });
         }
     );
+});
+
+// GET SPENDING REPORT
+app.get('/report/:userId', (req, res) => {
+
+    const { userId } = req.params;
+  
+    const query = `
+      SELECT 
+        S.category_name,
+        COUNT(T.transaction_id) AS total_transactions,
+        IFNULL(SUM(T.transaction_amount), 0) AS total_spent
+      FROM SpendCategory S
+      LEFT JOIN Transactions T
+        ON S.category_id = T.category_id
+        AND T.user_id = ?
+      GROUP BY S.category_id
+    `;
+  
+    db.query(query, [userId], (err, results) => {
+  
+      if (err) return res.status(500).json({ error: "Database error" });
+  
+      res.json(results);
+  
+    });
 });

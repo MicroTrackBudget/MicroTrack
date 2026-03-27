@@ -129,7 +129,6 @@
    </div>
   
    <script>
-
         //Update time
         function updateTime() {
             const now = new Date(); // Get current time
@@ -204,51 +203,52 @@
             document.getElementById('budgetModal').classList.remove('active');
         }
 
+        //View spending report
         async function viewReport() {
 
-const userId = parseInt(localStorage.getItem("userId"));
+            const userId = parseInt(localStorage.getItem("userId"));
 
-if (!userId) {
-    alert("User not logged in");
-    return;
-}
+            if (!userId) {
+                alert("User not logged in");
+                return;
+            }
 
-try {
+            try {
 
-    const response = await fetch(`/report/${userId}`);
-    const data = await response.json();
+                const response = await fetch(`/report/${userId}`);
+                const data = await response.json();
 
-    if (!response.ok) {
-        alert("Failed to load report");
-        return;
-    }
+                if (!response.ok) {
+                    alert("Failed to load report");
+                    return;
+                }
 
-    let report = "📊 Spending Report\n\n";
+                let report = "📊 Spending Report\n\n";
 
-    let totalSpent = 0;
-    let totalTransactions = 0;
+                let totalSpent = 0;
+                let totalTransactions = 0;
 
-    data.forEach(item => {
-        totalSpent += parseFloat(item.total_spent);
-        totalTransactions += item.total_transactions;
-    });
+                data.forEach(item => {
+                    totalSpent += parseFloat(item.total_spent);
+                    totalTransactions += item.total_transactions;
+                });
 
-    report += `Total Spent: $${totalSpent.toFixed(2)}\n`;
-    report += `Total Transactions: ${totalTransactions}\n\n`;
+                report += `Total Spent: $${totalSpent.toFixed(2)}\n`;
+                report += `Total Transactions: ${totalTransactions}\n\n`;
 
-    report += "By Category:\n";
+                report += "By Category:\n";
 
-    data.forEach(item => {
-        report += `${item.category_name}: $${parseFloat(item.total_spent).toFixed(2)}\n`;
-    });
+                data.forEach(item => {
+                    report += `${item.category_name}: $${parseFloat(item.total_spent).toFixed(2)}\n`;
+                });
 
-    alert(report);
+                alert(report);
 
-} catch (err) {
-    console.error(err);
-    alert("Error loading report");
-}
-}
+            } catch (err) {
+                console.error(err);
+                alert("Error loading report");
+            }
+        }
         
         //Fetch and display budgets from backend
         async function loadBudgets(){
