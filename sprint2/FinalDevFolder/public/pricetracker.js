@@ -1,4 +1,5 @@
 // pricetracker.js
+const API_URL = "https://microtrack-production.up.railway.app";
 
 // --- Update time ---
 function updateTime() {
