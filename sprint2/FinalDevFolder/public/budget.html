@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BudgetBud - Manage Budgets</title>
     <link rel="stylesheet" href="appstyles.css">
-    <script src="config.js"></script>
 </head>
 
 <body>
@@ -139,6 +138,7 @@
     </div>
 
     <script>
+        const API_URL = "https://microtrack-production.up.railway.app";
         //Update time
         function updateTime() {
             const now = new Date(); // Get current time
