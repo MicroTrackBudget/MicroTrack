@@ -16,20 +16,23 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // DB 
-const db = mysql.createConnection({
+const db = mysql.createPool({
     host: process.env.MYSQLHOST,
     port: process.env.MYSQLPORT,
     user: process.env.MYSQLUSER,
     password: process.env.MYSQLPASSWORD,
-    database: process.env.MYSQLDATABASE
-  });
+    database: process.env.MYSQLDATABASE,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+});
 
-db.connect(err => {
+db.query('SELECT 1', (err) => {
     if (err) {
         console.error('❌ MySQL connection failed:', err.message);
-        return;
+    } else {
+        console.log('✅ Connected to MySQL database!');
     }
-    console.log('✅ Connected to MySQL database!');
 });
 
 const dbAsync = db.promise();
