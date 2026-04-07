@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BudgetBud - Manage Budgets</title>
     <link rel="stylesheet" href="appstyles.css">
-
+    <script src="config.js"></script>
 </head>
 
 <body>
@@ -139,7 +139,6 @@
     </div>
 
     <script>
-
         //Update time
         function updateTime() {
             const now = new Date(); // Get current time
@@ -226,7 +225,7 @@
 
             try {
 
-                const response = await fetch(`/report/${userId}`);
+                const response = await fetch(`${API_URL}/report/${userId}`);
                 const data = await response.json();
 
                 if (!response.ok) {
@@ -270,7 +269,7 @@
                 return;
             }
 
-            const response = await fetch(`/budgets/${userId}`); // GET budgets
+            const response = await fetch(`${API_URL}/budgets/${userId}`); // GET budgets
             const budgets = await response.json();
 
             const budgetsList = document.getElementById('budgetsList');
@@ -346,7 +345,7 @@
             const category_name = categoryNames[selectedEmojiValue]; // Get category name
 
             //Get or create category in backend
-            const catRes = await fetch("/getOrCreateCategory", {
+            const catRes = await fetch(`${API_URL}/getOrCreateCategory`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ category_name })
@@ -356,7 +355,7 @@
             const category_id = catData.category_id;
 
             //Create budget
-            const response = await fetch("/api/createBudget", {
+            const response = await fetch(`${API_URL}/api/createBudget`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -386,7 +385,7 @@
 
             if (!confirm("Delete this budget?")) return;
 
-            const response = await fetch(`http://localhost:3000/budget/${id}`, {
+            const response = await fetch(`${API_URL}/budget/${id}`, {
                 method: "DELETE"
             });
 

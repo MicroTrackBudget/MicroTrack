@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BudgetBud - Login</title>
     <link rel="stylesheet" href="appstyles.css">
-       
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="confetti" id="confetti"></div>
@@ -122,7 +122,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('/api/login', {
+                const response = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })

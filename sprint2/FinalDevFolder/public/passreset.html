@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BudgetBud - Forgot Password</title>
     <link rel="stylesheet" href="appstyles.css">
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="confetti" id="confetti"></div>
@@ -151,7 +152,7 @@ document.getElementById('resetEmail').addEventListener('blur', async function() 
     if (!email) return;
 
     try {
-        const response = await fetch('http://localhost:3000/api/checkEmail', {
+        const response = await fetch(`${API_URL}/api/checkEmail`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
@@ -176,7 +177,7 @@ document.getElementById('securityAnswer').addEventListener('blur', async functio
     if (!answer || !currentEmail) return;
 
     try {
-        const response = await fetch('http://localhost:3000/verifyUser', {
+        const response = await fetch(`${API_URL}/verifyUser`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: currentEmail, username: answer })
@@ -260,7 +261,7 @@ document.getElementById('resetForm').addEventListener('submit', async function(e
     }
 
     try {
-        const response = await fetch('http://localhost:3000/api/resetPassword', {
+        const response = await fetch(`${API_URL}/api/resetPassword`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: currentEmail, newPassword })

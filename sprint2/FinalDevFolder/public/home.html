@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BudgetBud - Home</title>
     <link rel="stylesheet" href="appstyles.css">
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -127,7 +128,7 @@
         const userId = parseInt(localStorage.getItem("userId"));
         if (!userId) return;
         
-        const response = await fetch(`/budgets/${userId}`);
+        const response = await fetch(`${API_URL}/budgets/${userId}`);
         const budgets = await response.json();
 
         const budgetList = document.getElementById('budgetList');

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BudgetBud - Calculator</title>
     <link rel="stylesheet" href="appstyles.css">
+    <script src="config.js"></script>
 </head>
 <body>
     <div class="container">
@@ -166,8 +167,8 @@
     </div>
 
     <script>
-        const BUDGET_URL  = "http://localhost:3000";
-        const SAVINGS_URL = "http://localhost:3000";
+        const BUDGET_URL  = API_URL;
+        const SAVINGS_URL = API_URL;
 
         function updateTime() {
             const now = new Date();
