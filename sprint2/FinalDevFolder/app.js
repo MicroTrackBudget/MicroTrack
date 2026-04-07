@@ -41,6 +41,7 @@ const dbAsync = db.promise();
 
 // Register
 app.post('/api/register', (req, res) => {
+    console.log('Register hit:', req.body);
     const { username, email, password } = req.body;
 
     if (!username || !email || !password)
