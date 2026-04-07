@@ -1,10 +1,11 @@
+const sendPriceAlert = require('./email');
 require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const scraper = require('./scraper');
 const cors = require('cors');
 const path = require('path');
-const bcrypt = require('bcrypt'); // ✅ ADDED
+const bcrypt = require('bcrypt'); 
 
 const app = express();
 const PORT = 3000;
@@ -157,9 +158,11 @@ app.post('/sprint2/api/products', async (req, res) => {
     const { product_name, store_location, product_url, user_id, target_price } = req.body;
     if (!product_name || !store_location || !product_url || !user_id)
         return res.status(400).json({ error: "Missing required fields" });
-
+ 
+ 
     let scrapedPrice = null;
-
+ 
+ 
     try {
         if (store_location.toLowerCase() === 'walmart') {
             const cleanUrl = product_url.split('?')[0];
@@ -170,75 +173,103 @@ app.post('/sprint2/api/products', async (req, res) => {
     } catch (err) {
         console.error("Scraping error:", err.message);
     }
-
+ 
+ 
     db.query(
         'INSERT INTO Product (product_name, store_location, product_url, current_price, target_price, user_id) VALUES (?, ?, ?, ?, ?, ?)',
         [product_name, store_location, product_url, scrapedPrice, target_price, user_id],
         (err, result) => {
             if (err) return res.status(500).json({ error: err.message });
-
+ 
+ 
             const productId = result.insertId;
-
+ 
+ 
             if (scrapedPrice != null) {
                 db.query(
                     'INSERT INTO PriceHistory (product_id, price, price_date) VALUES (?, ?, NOW())',
                     [productId, scrapedPrice]
                 );
             }
-
+ 
+ 
             res.json({ success: true, productId, current_price: scrapedPrice });
         }
     );
-});
+ });
+ 
 
 /* ================= UPDATE PRODUCT PRICES ================= */
 
 app.get('/sprint2/api/update-prices', async (req, res) => {
     const user_id = req.query.user_id;
+    const forceEmail = req.query.forceEmail === 'true';
     if (!user_id) return res.status(400).json({ error: "Missing user_id" });
 
     try {
+        // Get all products for the user along with their email
         const [products] = await dbAsync.query(
-            'SELECT * FROM Product WHERE user_id = ?',
+            `SELECT P.*, U.email
+             FROM Product P
+             JOIN Users U ON P.user_id = U.user_id
+             WHERE P.user_id = ?`,
             [user_id]
         );
 
         const updates = [];
 
         for (let product of products) {
-            let price = null;
+            let scrapedPrice = null;
 
+            // --- Scrape price if store is recognized ---
             try {
-                if (product.store_location.toLowerCase() === 'walmart') {
+                if (product.store_location?.toLowerCase() === 'walmart') {
                     const cleanUrl = product.product_url.split('?')[0];
-                    price = await scraper.getWalmartPrice(cleanUrl);
-                } else if (product.store_location.toLowerCase() === 'amazon') {
-                    price = await scraper.getAmazonPrice(product.product_url);
+                    scrapedPrice = await scraper.getWalmartPrice(cleanUrl);
+                } else if (product.store_location?.toLowerCase() === 'amazon') {
+                    scrapedPrice = await scraper.getAmazonPrice(product.product_url);
                 }
-            } catch (err) {}
+            } catch (err) {
+                console.error(`Error scraping ${product.product_name}:`, err);
+            }
 
-            if (price != null) {
+            // Convert string prices to numbers
+            if (typeof scrapedPrice === 'string') scrapedPrice = Number(scrapedPrice.replace('$',''));
+
+            const oldPriceNum = Number(product.current_price);
+            const targetPriceNum = Number(product.target_price);
+
+            // Use scraped price if available
+            const newPriceNum = scrapedPrice != null ? scrapedPrice : oldPriceNum;
+
+            // --- Send email if price hits target OR forceEmail ---
+            if (!isNaN(targetPriceNum) && (newPriceNum <= targetPriceNum || forceEmail)) {
+                console.log(`🔥 Sending price alert for ${product.product_name}: $${newPriceNum} (target $${targetPriceNum})`);
+                try {
+                    await sendPriceAlert(product.email, product.product_name, newPriceNum, targetPriceNum);
+                } catch (err) {
+                    console.error("Failed to send email:", err);
+                }
+            }
+
+            // --- Update database only if price changed ---
+            if (scrapedPrice != null && scrapedPrice !== oldPriceNum) {
                 await dbAsync.query(
                     'UPDATE Product SET current_price = ? WHERE product_id = ?',
-                    [price, product.product_id]
+                    [newPriceNum, product.product_id]
                 );
 
-                await dbAsync.query(
-                    'INSERT INTO PriceHistory (product_id, price, price_date) VALUES (?, ?, NOW())',
-                    [product.product_id, price]
-                );
-
-                updates.push({ product_id: product.product_id, price });
+                updates.push({ product_id: product.product_id, price: newPriceNum });
             }
         }
 
-        res.json({ success: true, updates });
-
+        res.json({ success: true, updates, forceEmail });
     } catch (err) {
+        console.error("Update prices error:", err);
         res.status(500).json({ error: err.message });
     }
 });
-
+ 
 /* ================= CATEGORIES ================= */
 
 // Get or create category
@@ -247,7 +278,7 @@ app.post('/getOrCreateCategory', (req, res) => {
 
     if (!category_name) return res.status(400).json({ error: "Missing category_name" });
 
-    // Check if category exists
+    // Check if category exist
     db.query(
         'SELECT category_id FROM SpendCategory WHERE category_name = ?',
         [category_name],
@@ -312,8 +343,6 @@ app.get('/budgets/:userId', (req,res)=>{
     );
 });
 
-/* ================= SAVINGS ================= */
-// (unchanged — kept your original)
 
 /* ================= START SERVER ================= */
 
@@ -466,3 +495,65 @@ app.delete('/budget/:id', (req, res) => {
         }
     );
 });
+
+/* ================= AUTO PRICE ALERT POLLING ================= */
+
+setInterval(async () => {
+    try {
+        const [products] = await dbAsync.query(
+            `SELECT P.product_id, P.product_name, P.current_price, 
+                    P.target_price, P.last_alert_sent, U.email
+             FROM Product P
+             JOIN Users U ON P.user_id = U.user_id`
+        );
+
+        for (let product of products) {
+            const currentPrice = Number(product.current_price);
+            const targetPrice = Number(product.target_price);
+
+            const lastSent = product.last_alert_sent 
+                ? new Date(product.last_alert_sent) 
+                : null;
+
+            const now = new Date();
+            const COOLDOWN = 60 * 60 * 1000; // 1 hour (cane be changed to later - Luis)
+
+            if (!isNaN(targetPrice) && currentPrice <= targetPrice) {
+
+                // only send if never sent OR cooldown passed
+                if (!lastSent || (now - lastSent) > COOLDOWN) {
+
+                    console.log(`🔥 Sending email for ${product.product_name}: $${currentPrice} (target $${targetPrice})`);
+
+                    try {
+                        await sendPriceAlert(
+                            product.email,
+                            product.product_name,
+                            currentPrice,
+                            targetPrice
+                        );
+
+                        await dbAsync.query(
+                            'UPDATE Product SET last_alert_sent = NOW() WHERE product_id = ?',
+                            [product.product_id]
+                        );
+
+                    } catch (err) {
+                        console.error("Failed to send email:", err);
+                    }
+                }
+            }
+
+            // if price goes back up/normal reset
+            if (!isNaN(targetPrice) && currentPrice > targetPrice && lastSent) {
+                await dbAsync.query(
+                    'UPDATE Product SET last_alert_sent = NULL WHERE product_id = ?',
+                    [product.product_id]
+                );
+            }
+        }
+
+    } catch (err) {
+        console.error("Auto price alert error:", err);
+    }
+}, 60 * 1000);
