@@ -14,8 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-/* ================= DB ================= */
-
+// DB 
 const db = mysql.createConnection({
     host: process.env.DB_HOST || "localhost",
     user: process.env.DB_USER || "root",
@@ -33,7 +32,7 @@ db.connect(err => {
 
 const dbAsync = db.promise();
 
-/* ================= AUTH ================= */
+//AUTH 
 
 // Register
 app.post('/api/register', (req, res) => {
@@ -110,9 +109,9 @@ app.post('/api/resetPassword', (req, res) => {
     });
 });
 
-/* ================= TRANSACTIONS ================= */
+//TRANSACTIONS
 
-// ✅ ADD PURCHASE (for your HTML)
+//Add Purchase
 app.post('/api/addPurchase', (req, res) => {
     const { user_id, category_id, transaction_amount, description } = req.body;
 
@@ -138,7 +137,7 @@ app.post('/api/addPurchase', (req, res) => {
     );
 });
 
-/* ================= PRODUCTS ================= */
+//PRODUCTS
 
 app.get('/sprint2/api/products', (req, res) => {
     const user_id = req.query.user_id;
@@ -199,7 +198,7 @@ app.post('/sprint2/api/products', async (req, res) => {
  });
  
 
-/* ================= UPDATE PRODUCT PRICES ================= */
+//UPDATE PRODUCT PRICES 
 
 app.get('/sprint2/api/update-prices', async (req, res) => {
     const user_id = req.query.user_id;
@@ -303,7 +302,7 @@ app.post('/getOrCreateCategory', (req, res) => {
     );
 });
 
-/* ================= BUDGETS ================= */
+//BUDGETS
 
 app.post('/api/createBudget', (req,res)=>{
     const { monthly_limit, weekly_limit, user_id, category_id } = req.body;
@@ -406,7 +405,7 @@ app.post("/api/savings/save", async (req, res) => {
     }
 });
 
-/* ================= SAVINGS ================= */
+//SAVINGS 
 
 // Calculate savings goal (frontend calls /api/savings/calculate)
 app.post('/api/savings/calculate', (req, res) => {

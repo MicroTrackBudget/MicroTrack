@@ -214,6 +214,53 @@
             document.getElementById('budgetModal').classList.remove('active');
         }
 
+        //View spending report
+        async function viewReport() {
+
+            const userId = parseInt(localStorage.getItem("userId"));
+
+            if (!userId) {
+                alert("User not logged in");
+                return;
+            }
+
+            try {
+
+                const response = await fetch(`/report/${userId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert("Failed to load report");
+                    return;
+                }
+
+                let report = "📊 Spending Report\n\n";
+
+                let totalSpent = 0;
+                let totalTransactions = 0;
+
+                data.forEach(item => {
+                    totalSpent += parseFloat(item.total_spent);
+                    totalTransactions += item.total_transactions;
+                });
+
+                report += `Total Spent: $${totalSpent.toFixed(2)}\n`;
+                report += `Total Transactions: ${totalTransactions}\n\n`;
+
+                report += "By Category:\n";
+
+                data.forEach(item => {
+                    report += `${item.category_name}: $${parseFloat(item.total_spent).toFixed(2)}\n`;
+                });
+
+                alert(report);
+
+            } catch (err) {
+                console.error(err);
+                alert("Error loading report");
+            }
+        }
+
         //Fetch and display budgets from backend
         async function loadBudgets() {
 
@@ -250,11 +297,13 @@
                 else if (percent >= 75) color = "#FF9800";
 
                 //Create budget item HTML
+                const emoji = getEmojiFromCategory(budget.category_name);
+
                 const html = `
                 <div class="budget-list-item">
         
                     <div class="budget-list-info">
-                        <h3>${budget.category_name}</h3>
+                        <h3>${emoji} ${budget.category_name}</h3>
         
                         <div class="budget-list-details">
                             <div class="mini-icon" style="background:${color};"></div>
@@ -316,7 +365,7 @@
                     monthly_limit,
                     weekly_limit: 0,
                     user_id,
-                    category_id
+                    category_id,
                 })
             });
 
@@ -349,6 +398,11 @@
             }
 
             loadBudgets();
+        }
+
+        function getEmojiFromCategory(categoryName) {
+            return Object.keys(categoryNames)
+                .find(key => categoryNames[key] === categoryName) || '';
         }
 
         loadBudgets(); // Load budgets on page load     

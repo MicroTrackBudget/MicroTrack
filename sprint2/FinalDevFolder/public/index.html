@@ -115,44 +115,43 @@
         }
     
         // Handle login form submission
-        // Handle login form submission
-document.getElementById('loginForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
 
-    const email = document.getElementById('email').value.toLowerCase().trim();
-    const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.toLowerCase().trim();
+            const password = document.getElementById('password').value;
 
-    try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Successful login
+                    localStorage.setItem('userEmail', email);
+                    localStorage.setItem('userName', data.username);
+                    localStorage.setItem('userId', data.userId); 
+                    localStorage.setItem('isLoggedIn', 'true');
+
+                    confettiBurst();
+                    const btn = document.querySelector('.btn-primary');
+                    btn.textContent = 'Success! 🎉';
+                    btn.style.background = '#4CAF50';
+
+                    setTimeout(() => {
+                        window.location.href = 'home.html'; 
+                    }, 1500);
+                } else {
+                    alert(`❌ ${data.error}`);
+                }
+            } catch (err) {
+                alert('❌ Server error: ' + err.message);
+            }
         });
-
-        const data = await response.json();
-
-        if (response.ok && data.success) {
-            // Successful login
-            localStorage.setItem('userEmail', email);
-            localStorage.setItem('userName', data.username);
-            localStorage.setItem('userId', data.userId); // <-- ADD THIS LINE
-            localStorage.setItem('isLoggedIn', 'true');
-
-            confettiBurst();
-            const btn = document.querySelector('.btn-primary');
-            btn.textContent = 'Success! 🎉';
-            btn.style.background = '#4CAF50';
-
-            setTimeout(() => {
-                window.location.href = 'pricetracker.html'; // or home.html if that’s your main page
-            }, 1500);
-        } else {
-            alert(`❌ ${data.error}`);
-        }
-    } catch (err) {
-        alert('❌ Server error: ' + err.message);
-    }
-});
     
         // Confetti on email field focus
         document.getElementById('email').addEventListener('focus', confettiBurst);
