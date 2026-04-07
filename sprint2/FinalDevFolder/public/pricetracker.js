@@ -1,4 +1,5 @@
 // pricetracker.js
+const API_URL = "https://microtrack-production.up.railway.app";
 
 // --- Update time ---
 function updateTime() {
@@ -56,7 +57,7 @@ async function loadTrackedItems() {
     trackedItemsList.innerHTML = '';
 
     try {
-        const response = await fetch(`/sprint2/api/products?user_id=${userId}`);
+        const response = await fetch(`${API_URL}/sprint2/api/products?user_id=${userId}`);
         const data = await response.json();
         const products = data.products || [];
 
@@ -116,7 +117,7 @@ document.getElementById('itemForm').addEventListener('submit', async function(e)
     if (store === 'Other' && customStore) store = customStore;
 
     try {
-        const response = await fetch('/sprint2/api/products', {
+        const response = await fetch(`${API_URL}/sprint2/api/products`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ product_name: itemName, store_location: store, product_url: productUrl, target_price: targetPrice, user_id: userId })
@@ -145,7 +146,7 @@ document.getElementById('itemForm').addEventListener('submit', async function(e)
 // --- Update prices ---
 async function updateAllPrices() {
     try {
-        const response = await fetch(`/sprint2/api/update-prices?user_id=${userId}`);
+        const response = await fetch(`${API_URL}/sprint2/api/update-prices?user_id=${userId}`);
         const data = await response.json();
 
         if (response.ok) {

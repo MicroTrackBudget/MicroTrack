@@ -96,6 +96,7 @@
 </div>
 
 <script>
+    const API_URL = "https://microtrack-production.up.railway.app";
 /* ---------- TIME ---------- */
 function updateTime() {
     const now = new Date();
@@ -226,7 +227,7 @@ document.getElementById('purchaseForm').addEventListener('submit', async functio
     console.log('Sending to server:', requestData);
 
     try {
-        const response = await fetch('http://localhost:3000/api/addPurchase', {
+        const response = await fetch(`${API_URL}/api/addPurchase`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(requestData)

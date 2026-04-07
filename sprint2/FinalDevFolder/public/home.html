@@ -68,6 +68,7 @@
     </div>
     
     <script>
+        const API_URL = "https://microtrack-production.up.railway.app";
 
     //Update time
     function updateTime() {
@@ -127,7 +128,7 @@
         const userId = parseInt(localStorage.getItem("userId"));
         if (!userId) return;
         
-        const response = await fetch(`/budgets/${userId}`);
+        const response = await fetch(`${API_URL}/budgets/${userId}`);
         const budgets = await response.json();
 
         const budgetList = document.getElementById('budgetList');

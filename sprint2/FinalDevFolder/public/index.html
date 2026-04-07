@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BudgetBud - Login</title>
     <link rel="stylesheet" href="appstyles.css">
-       
 </head>
 <body>
     <div class="confetti" id="confetti"></div>
@@ -60,6 +59,7 @@
     </div>
     
     <script>
+        const API_URL = "https://microtrack-production.up.railway.app";
         // Update time
         function updateTime() {
             const now = new Date();
@@ -122,7 +122,7 @@
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('/api/login', {
+                const response = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password })
