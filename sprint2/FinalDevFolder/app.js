@@ -562,3 +562,4 @@ setInterval(async () => {
         console.error("Auto price alert error:", err);
     }
 }, 60 * 1000);
+console.log("RESEND KEY EXISTS:", !!process.env.RESEND_API_KEY);

@@ -1,9 +1,17 @@
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const apiKey = process.env.RESEND_API_KEY;
+
+if (!apiKey) {
+  console.error("❌ Missing RESEND_API_KEY environment variable");
+}
+
+const resend = new Resend(apiKey);
 
 async function sendPriceAlert(to, productName, oldPrice, newPrice) {
   try {
+    if (!apiKey) return;
+
     const result = await resend.emails.send({
       from: 'MicroTrack <onboarding@resend.dev>',
       to,
