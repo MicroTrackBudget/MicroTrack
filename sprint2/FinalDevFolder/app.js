@@ -1,3 +1,6 @@
+const dns = require('dns');
+dns.setDefaultResultOrder('ipv4first');
+
 const sendPriceAlert = require('./email');
 require('dotenv').config();
 const express = require('express');
