@@ -1,27 +1,36 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
 
-const apiKey = process.env.RESEND_API_KEY;
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: false, // 587 = false (STARTTLS)
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
 
-if (!apiKey) {
-  console.error("❌ Missing RESEND_API_KEY environment variable");
-}
-
-const resend = new Resend(apiKey);
+// optional debug check
+transporter.verify((err) => {
+  if (err) console.error("❌ SMTP error:", err);
+  else console.log("✅ Brevo SMTP ready");
+});
 
 async function sendPriceAlert(to, productName, oldPrice, newPrice) {
   try {
-    if (!apiKey) return;
+    console.log("📧 Sending email to:", to);
 
-    const result = await resend.emails.send({
-      from: 'MicroTrack <onboarding@resend.dev>',
+    const info = await transporter.sendMail({
+      from: `"MicroTrack Alerts" <${process.env.SMTP_USER}>`,
       to,
-      subject: '🔥 Price Drop Alert!',
+      subject: "Price Drop Alert!",
       text: `${productName} dropped from $${oldPrice} to $${newPrice}!`
     });
 
-    console.log("Email sent via Resend:", result);
+    console.log("✅ Email sent:", info.response);
   } catch (err) {
-    console.error("Resend email error:", err);
+    console.error("❌ Email error:", err);
   }
 }
 
