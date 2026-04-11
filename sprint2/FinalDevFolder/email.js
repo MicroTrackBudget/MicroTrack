@@ -1,36 +1,24 @@
-const nodemailer = require('nodemailer');
+const SibApiV3Sdk = require('@getbrevo/brevo');
 require('dotenv').config();
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
-  secure: false, // 587 = false (STARTTLS)
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
+let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-// optional debug check
-transporter.verify((err) => {
-  if (err) console.error("❌ SMTP error:", err);
-  else console.log("✅ Brevo SMTP ready");
-});
+let apiKey = apiInstance.authentications['apiKey'];
+apiKey.apiKey = process.env.SMTP_PASS; // (Brevo API key works here too)
 
 async function sendPriceAlert(to, productName, oldPrice, newPrice) {
   try {
-    console.log("📧 Sending email to:", to);
-
-    const info = await transporter.sendMail({
-      from: `"MicroTrack Alerts" <${process.env.SMTP_USER}>`,
-      to,
+    const email = {
+      sender: { email: process.env.SMTP_USER, name: "MicroTrack" },
+      to: [{ email: to }],
       subject: "Price Drop Alert!",
-      text: `${productName} dropped from $${oldPrice} to $${newPrice}!`
-    });
+      textContent: `${productName} dropped from $${oldPrice} to $${newPrice}!`
+    };
 
-    console.log("✅ Email sent:", info.response);
+    const result = await apiInstance.sendTransacEmail(email);
+    console.log("Email sent via Brevo API:", result);
   } catch (err) {
-    console.error("❌ Email error:", err);
+    console.error("Email error:", err);
   }
 }
 
