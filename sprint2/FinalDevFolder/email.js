@@ -1,4 +1,3 @@
-const fetch = require('node-fetch');
 require('dotenv').config();
 
 async function sendPriceAlert(to, productName, currentPrice, targetPrice) {
@@ -10,7 +9,7 @@ async function sendPriceAlert(to, productName, currentPrice, targetPrice) {
         'api-key': process.env.BREVO_API_KEY
       },
       body: JSON.stringify({
-        sender: { name: "MicroTrack Alerts", email: "your-verified-sender@yourdomain.com" },
+        sender: { name: "MicroTrack Alerts", email: process.env.BREVO_SENDER_EMAIL },
         to: [{ email: to }],
         subject: "Price Drop Alert 🔥",
         htmlContent: `
