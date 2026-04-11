@@ -1,37 +1,30 @@
-const nodemailer = require("nodemailer");
-require("dotenv").config();
+const fetch = require('node-fetch');
+require('dotenv').config();
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT),
-  secure: false, // 587 = STARTTLS
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
-
-// optional debug
-transporter.verify((err) => {
-  if (err) console.error("❌ SMTP error:", err);
-  else console.log("✅ Brevo SMTP ready");
-});
-
-async function sendPriceAlert(to, productName, oldPrice, newPrice) {
+async function sendPriceAlert(to, productName, currentPrice, targetPrice) {
   try {
-    const info = await transporter.sendMail({
-      from: `"MicroTrack Alerts" <${process.env.SMTP_USER}>`,
-      to,
-      subject: "Price Drop Alert 🔥",
-      html: `
-        <h2>Price Drop Alert</h2>
-        <p><b>${productName}</b></p>
-        <p>Old: $${oldPrice}</p>
-        <p>New: $${newPrice}</p>
-      `
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': process.env.BREVO_API_KEY
+      },
+      body: JSON.stringify({
+        sender: { name: "MicroTrack Alerts", email: "your-verified-sender@yourdomain.com" },
+        to: [{ email: to }],
+        subject: "Price Drop Alert 🔥",
+        htmlContent: `
+          <h2>Price Drop Alert</h2>
+          <p><b>${productName}</b> has hit your target!</p>
+          <p>Current Price: $${currentPrice}</p>
+          <p>Your Target: $${targetPrice}</p>
+        `
+      })
     });
 
-    console.log("📧 Email sent:", info.messageId);
+    const data = await response.json();
+    if (!response.ok) throw new Error(JSON.stringify(data));
+    console.log("📧 Email sent via Brevo API");
   } catch (err) {
     console.error("❌ Email error:", err);
   }
