@@ -25,6 +25,8 @@ async function sendPriceAlert(to, productName, oldPrice, newPrice) {
   };
 
   try {
+    console.log("Sending email to:", to);
+    console.log("Using Gmail:", process.env.EMAIL_USER);
     const info = await transporter.sendMail(mailOptions);
     console.log("Email sent:", info.response);
   } catch (err) {
