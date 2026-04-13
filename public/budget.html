@@ -76,7 +76,7 @@
    </div>
   
    <!--Budget Modal-->
-   <div id="budgetModal" class="modal"> <!-- Hidden popup for creating budgets -->
+   <div id="budgetModal" class="modal"> 
        <div class="modal-content">
            
            <!-- Modal header -->
@@ -129,7 +129,6 @@
    </div>
   
    <script>
-
         //Update time
         function updateTime() {
             const now = new Date(); // Get current time
@@ -202,6 +201,53 @@
         //Close modal
         function closeModal(){
             document.getElementById('budgetModal').classList.remove('active');
+        }
+
+        //View spending report
+        async function viewReport() {
+
+            const userId = parseInt(localStorage.getItem("userId"));
+
+            if (!userId) {
+                alert("User not logged in");
+                return;
+            }
+
+            try {
+
+                const response = await fetch(`/report/${userId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert("Failed to load report");
+                    return;
+                }
+
+                let report = "📊 Spending Report\n\n";
+
+                let totalSpent = 0;
+                let totalTransactions = 0;
+
+                data.forEach(item => {
+                    totalSpent += parseFloat(item.total_spent);
+                    totalTransactions += item.total_transactions;
+                });
+
+                report += `Total Spent: $${totalSpent.toFixed(2)}\n`;
+                report += `Total Transactions: ${totalTransactions}\n\n`;
+
+                report += "By Category:\n";
+
+                data.forEach(item => {
+                    report += `${item.category_name}: $${parseFloat(item.total_spent).toFixed(2)}\n`;
+                });
+
+                alert(report);
+
+            } catch (err) {
+                console.error(err);
+                alert("Error loading report");
+            }
         }
         
         //Fetch and display budgets from backend
