@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBud - Login</title>
+    <link rel="stylesheet" href="appstyles.css">
+    <script type="text/javascript">
+window.addEventListener('load',function(){function loadHeyy(){window.heyySettings={widgetId:"pllhkLtTB3weRcr2",baseUrl:"https://live-chat.heyy.io"};var s=document.createElement('script');s.type='text/javascript';s.async=true;s.src='https://assets.heyy.io/live-chat/live-chat.js';document.head.appendChild(s);}if('requestIdleCallback'in window){requestIdleCallback(loadHeyy);}else{setTimeout(loadHeyy,3000);}});
+</script>
+</head>
+<body>
+    <div class="confetti" id="confetti"></div>
+    
+    <div class="login-container">
+        <div class="phone-frame">
+            <div class="screen">
+                <span id="currentTime"></span>
+                <div class="status-bar">
+                </div>
+                
+                <div class="content" style="padding-top: 40px;">
+                    <div class="logo-container">
+                        <div class="logo">💰</div>
+                        <div class="app-name">BudgetBud</div>
+                        <div class="tagline">by MicroTrack</div>
+                    </div>
+                    
+                    <div class="welcome-text">
+                        <h2>Welcome!</h2>
+                        <p>Track your spending, start saving smarter 💸</p>
+                    </div>
+                    
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="email" placeholder="your.email@example.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-input" id="password" placeholder="••••••••" required>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary" style="margin-top: 20px;">
+                            Log In 🚀
+                        </button>
+                        
+                        <button type="button" class="btn-secondary" onclick="window.location.href='createaccount.html'">
+                            Create Account
+                        </button>
+                        
+                        <div style="text-align: center; margin-top: 20px;">
+                            <a href="passreset.html" style="color: #4CAF50; text-decoration: none; font-size: 13px;">
+                                Forgot Password?
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+        
+        //Confetti animation
+        function createConfetti() {
+            const confetti = document.getElementById('confetti');
+            const symbols = ['$', '💰', '💵', '💸', '💲', '💴', '💶', '💷'];
+            const colors = ['#4CAF50', '#81C784', '#66BB6A', '#FFD700', '#FFC107'];
+            
+            setInterval(() => {
+                const dollar = document.createElement('div');
+                dollar.className = 'dollar';
+                const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                dollar.textContent = symbol;
+                dollar.style.left = Math.random() * 100 + '%';
+                dollar.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                dollar.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                
+                if (symbol === '$') {
+                    dollar.style.color = colors[Math.floor(Math.random() * colors.length)];
+                }
+                
+                confetti.appendChild(dollar);
+                
+                setTimeout(() => {
+                    dollar.remove();
+                }, 6000);
+            }, 400);
+        }
+        
+        createConfetti();
+        
+        //Create confetti burst
+        function confettiBurst() {
+            const confetti = document.getElementById('confetti');
+            const symbols = ['💰', '💵', '💸', '💲'];
+            
+            for(let i = 0; i < 40; i++) {
+                setTimeout(() => {
+                    const dollar = document.createElement('div');
+                    dollar.className = 'dollar';
+                    dollar.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                    dollar.style.left = (Math.random() * 100) + '%';
+                    dollar.style.animationDuration = '2s';
+                    dollar.style.fontSize = (Math.random() * 16 + 24) + 'px';
+                    confetti.appendChild(dollar);
+                    
+                    setTimeout(() => dollar.remove(), 2000);
+                }, i * 40);
+            }
+        }
+        
+        //Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.toLowerCase().trim();
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+
+                if (!res.ok) {
+                    alert(`❌ ${data.error}\n\nPlease try again or create an account.`);
+                    return;
+                }
+
+                //Successful login (same localStorage logic you had)
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userName', data.user.username);
+                localStorage.setItem('userId', data.user.user_id);
+                localStorage.setItem('isLoggedIn', 'true');
+
+                //Success confetti burst
+                confettiBurst();
+
+                //Success message
+                const btn = document.querySelector('.btn-primary');
+                btn.textContent = 'Success! 🎉';
+                btn.style.background = '#4CAF50';
+
+                //Redirect to home page
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 1500);
+            
+            } catch (err) {
+                console.error(err);
+                alert('❌ Server error, try again later.');
+            }
+        });
+        
+        //Add confetti on email field focus
+        document.getElementById('email').addEventListener('focus', () => {
+            confettiBurst();
+        });
+    </script>
+</body>
+</html>
