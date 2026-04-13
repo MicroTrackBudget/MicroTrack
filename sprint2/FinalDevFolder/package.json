@@ -2,15 +2,16 @@
   "name": "sprint2",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@getbrevo/brevo": "^5.0.4",
     "axios": "^1.13.6",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.2",
@@ -19,6 +20,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "mysql2": "^3.18.2",
-    "nodemailer": "^8.0.4"
+    "nodemailer": "^8.0.5",
+    "resend": "^6.10.0"
   }
 }

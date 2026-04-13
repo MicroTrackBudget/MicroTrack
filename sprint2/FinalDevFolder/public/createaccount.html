@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BudgetBud - Create Account</title>
     <link rel="stylesheet" href="appstyles.css">
-    
 </head>
 <body>
     <div class="confetti" id="confetti"></div>
@@ -69,6 +68,7 @@
     </div>
     
     <script>
+        const API_URL = "https://microtrack-production.up.railway.app";
         //Update time
         function updateTime() {
             const now = new Date();
@@ -197,7 +197,7 @@
     }
 
     try {
-        const response = await fetch('/api/register', {
+        const response = await fetch(`${API_URL}/api/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: fullName, email, password })
