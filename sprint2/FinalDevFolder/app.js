@@ -269,6 +269,40 @@ app.get('/sprint2/api/update-prices', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+/* ================= REMOVE PRODUCT ================= */
+
+app.delete('/sprint2/api/remove-product', (req, res) => {
+    const id = req.query.id;
+
+    if (!id) return res.status(400).json({ error: "Missing product id" });
+
+    // STEP 1: delete price history first
+    db.query(
+        'DELETE FROM PriceHistory WHERE product_id = ?',
+        [id],
+        (err) => {
+            if (err) {
+                console.error("PriceHistory delete error:", err);
+                return res.status(500).json({ error: "Database error" });
+            }
+
+            // STEP 2: delete product
+            db.query(
+                'DELETE FROM Product WHERE product_id = ?',
+                [id],
+                (err2, result) => {
+                    if (err2) {
+                        console.error("Product delete error:", err2);
+                        return res.status(500).json({ error: "Database error" });
+                    }
+
+                    res.json({ success: true });
+                }
+            );
+        }
+    );
+});
  
 /* ================= CATEGORIES ================= */
 
@@ -557,3 +591,5 @@ setInterval(async () => {
         console.error("Auto price alert error:", err);
     }
 }, 60 * 1000);
+
+
