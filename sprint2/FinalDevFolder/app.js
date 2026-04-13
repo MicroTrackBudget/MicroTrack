@@ -521,7 +521,7 @@ setInterval(async () => {
                 : null;
 
             const now = new Date();
-            const COOLDOWN = 365 * 24 * 60 * 60 * 1000; // changed to 1 year
+            const COOLDOWN = Infinity; // send only once per price drop
 
             if (!isNaN(targetPrice) && currentPrice <= targetPrice) {
 
