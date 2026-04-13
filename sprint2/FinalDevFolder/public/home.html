@@ -187,6 +187,17 @@
         document.getElementById('totalRemaining').textContent = `$${totalRemaining.toFixed(2)}`;
         document.getElementById('totalBudget').textContent = `$${totalBudgetAmount.toFixed(2)}`;
     }
+
+    async function init() {
+        const userId = localStorage.getItem("userId");
+
+        const res = await fetch(`/budgets/${userId}`);
+        const data = await res.json();
+
+        renderBudgets(data);
+    }
+
+    init();
     
     //Load budgets on page load
     loadBudgets();
