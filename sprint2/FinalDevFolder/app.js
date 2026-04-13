@@ -521,7 +521,7 @@ setInterval(async () => {
                 : null;
 
             const now = new Date();
-            const COOLDOWN = 60 * 60 * 1000; // 1 hour (cane be changed to later - Luis)
+            const COOLDOWN = Infinity; // send only once per price drop
 
             if (!isNaN(targetPrice) && currentPrice <= targetPrice) {
 
