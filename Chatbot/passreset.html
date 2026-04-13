@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBud - Forgot Password</title>
+    <link rel="stylesheet" href="appstyles.css">
+    <script type="text/javascript">
+window.addEventListener('load',function(){function loadHeyy(){window.heyySettings={widgetId:"pllhkLtTB3weRcr2",baseUrl:"https://live-chat.heyy.io"};var s=document.createElement('script');s.type='text/javascript';s.async=true;s.src='https://assets.heyy.io/live-chat/live-chat.js';document.head.appendChild(s);}if('requestIdleCallback'in window){requestIdleCallback(loadHeyy);}else{setTimeout(loadHeyy,3000);}});
+</script>
+</head>
+<body>
+    <div class="confetti" id="confetti"></div>
+    
+    <div class="login-container">
+        <div class="phone-frame">
+            <div class="screen">
+                <span id="currentTime"></span>
+                <div class="status-bar">
+                </div>
+                
+                <div class="content" style="padding-top: 40px;">
+                    <div class="logo-container">
+                        <div class="logo">🔐</div>
+                        <div class="app-name">Reset Password</div>
+                        <div class="tagline">by MicroTrack</div>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div id="step1" class="step active">
+                        <div class="welcome-text">
+                            <h2>Forgot Your Password?</h2>
+                            <p>No worries! Let's get you back in 🔑</p>
+                        </div>
+                        
+                        <form id="emailForm">
+                            <div class="form-group">
+                                <label class="form-label">Email Address</label>
+                                <input type="email" class="form-input" id="resetEmail" placeholder="your.email@example.com" required>
+                                <div class="password-hint">Enter the email associated with your account</div>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!--Name-->
+                        <div id="step2" class="step">
+                        <div class="welcome-text">
+                            <h2>Full Name</h2> 
+                        </div>
+                        <form id="securityForm">
+                            <div class="form-group">
+                                <label class="form-label">What's your full name?</label>
+                                <input type="text" class="form-input" id="securityAnswer" placeholder="Enter your full name" required>
+                                <div class="password-hint">This is the name you used when creating your account</div>
+                            </div>
+                         
+                        </form>
+                    </div>
+                    
+                    <!--Reset Password -->
+                    <div id="step3" class="step">
+                        <div class="welcome-text">
+                            <h2>Create New Password</h2>
+                            <p>Choose a strong password 🔒</p>
+                        </div>
+
+                        <form id="resetForm">
+                            <div class="form-group">
+                                <label class="form-label">New Password</label>
+                                <input type="password" class="form-input" id="newPassword" placeholder="••••••••" required minlength="6">
+                                <div class="password-strength">
+                                    <div class="password-strength-bar" id="strengthBar"></div>
+                                </div>
+                                <div class="password-hint" id="strengthText">Password must be at least 6 characters</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Confirm New Password</label>
+                                <input type="password" class="form-input" id="confirmNewPassword" placeholder="••••••••" required>
+                                <div class="password-hint" id="matchText"></div>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary" style="margin-top: 20px;">
+                                Reset Password
+                            </button>
+                            <button type="button" class="btn-secondary" onclick="window.location.href='index.html'">
+                                Back to Login
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentEmail = '';
+        
+        //Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+        
+        //Confetti animation
+        function createConfetti() {
+            const confetti = document.getElementById('confetti');
+            const symbols = ['$', '💰', '💵', '💸', '💲', '💴', '💶', '💷'];
+            const colors = ['#4CAF50', '#81C784', '#66BB6A', '#FFD700', '#FFC107'];
+            
+            setInterval(() => {
+                const dollar = document.createElement('div');
+                dollar.className = 'dollar';
+                const symbol = symbols[Math.floor(Math.random() * symbols.length)];
+                dollar.textContent = symbol;
+                dollar.style.left = Math.random() * 100 + '%';
+                dollar.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                dollar.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                
+                if (symbol === '$') {
+                    dollar.style.color = colors[Math.floor(Math.random() * colors.length)];
+                }
+                
+                confetti.appendChild(dollar);
+                
+                setTimeout(() => {
+                    dollar.remove();
+                }, 6000);
+            }, 400);
+        }
+        
+        createConfetti();
+        
+        //Burst of confetti
+        function confettiBurst() {
+            const confetti = document.getElementById('confetti');
+            const symbols = ['💰', '💵', '💸', '💲'];
+            
+            for(let i = 0; i < 40; i++) {
+                setTimeout(() => {
+                    const dollar = document.createElement('div');
+                    dollar.className = 'dollar';
+                    dollar.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                    dollar.style.left = (Math.random() * 100) + '%';
+                    dollar.style.animationDuration = '2s';
+                    dollar.style.fontSize = (Math.random() * 16 + 24) + 'px';
+                    confetti.appendChild(dollar);
+                    
+                    setTimeout(() => dollar.remove(), 2000);
+                }, i * 40);
+            }
+        }
+        
+        function showStep(stepNumber) {
+            document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
+            document.getElementById(`step${stepNumber}`).classList.add('active');
+        }
+        
+        
+        //Check if email exists
+        
+           document.getElementById('resetEmail').addEventListener('blur', function() {
+            const email = this.value.toLowerCase().trim();
+            
+            if (!email) return; // Don't check if empty
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            
+            if (!users[email]) {
+                alert('❌ No account found with this email!\n\nPlease check your email or create a new account.');
+                this.value = '';
+                return;
+            }
+            
+            currentEmail = email;
+            showStep(2);
+
+            //Next field
+            setTimeout(() => {
+                document.getElementById('securityAnswer').focus();
+            }, 100);
+        });
+        
+        //Name
+          document.getElementById('securityAnswer').addEventListener('blur', function() {
+            const answer = this.value.trim();
+            
+            if (!answer || !currentEmail) return; // Don't check if empty  
+           const users = JSON.parse(localStorage.getItem('users') || '{}');
+            
+            if (users[currentEmail].fullName.toLowerCase() !== answer.toLowerCase()) {
+                alert('❌ Incorrect answer!\n\nPlease try again or contact support.');
+                this.value = '';
+                return;
+            }
+            
+            showStep(3);
+        //Focus on new password field
+            setTimeout(() => {
+                document.getElementById('newPassword').focus();
+            }, 100);
+        });
+        
+        //Password strength checker
+        document.getElementById('newPassword').addEventListener('input', function() {
+            const password = this.value;
+            const strengthBar = document.getElementById('strengthBar');
+            const strengthText = document.getElementById('strengthText');
+            
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (password.length >= 10) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[^a-zA-Z\d]/.test(password)) strength++;
+            
+            strengthBar.className = 'password-strength-bar';
+            
+            if (strength < 2) {
+                strengthBar.classList.add('strength-weak');
+                strengthText.textContent = 'Weak password';
+                strengthText.style.color = '#F44336';
+            } else if (strength < 4) {
+                strengthBar.classList.add('strength-medium');
+                strengthText.textContent = 'Medium strength';
+                strengthText.style.color = '#FF9800';
+            } else {
+                strengthBar.classList.add('strength-strong');
+                strengthText.textContent = 'Strong password!';
+                strengthText.style.color = '#4CAF50';
+            }
+        });
+        
+        //Password match checker
+        document.getElementById('confirmNewPassword').addEventListener('input', function() {
+            const password = document.getElementById('newPassword').value;
+            const confirmPassword = this.value;
+            const matchText = document.getElementById('matchText');
+            
+            if (confirmPassword.length > 0) {
+                if (password === confirmPassword) {
+                    matchText.textContent = '✓ Passwords match';
+                    matchText.style.color = '#4CAF50';
+                } else {
+                    matchText.textContent = '✗ Passwords do not match';
+                    matchText.style.color = '#F44336';
+                }
+            } else {
+                matchText.textContent = '';
+            }
+        });
+        
+        //Reset password
+        document.getElementById('resetForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                alert('❌ Passwords do not match!');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('❌ Password must be at least 6 characters long!');
+                return;
+            }
+            
+            //Update password
+            const users = JSON.parse(localStorage.getItem('users') || '{}');
+            users[currentEmail].password = newPassword;
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            
+            confettiBurst();
+            
+            alert('✅ Password reset successfully!\n\nYou can now log in with your new password.');
+            
+            //Redirect to login
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

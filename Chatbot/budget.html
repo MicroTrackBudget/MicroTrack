@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8"> 
+   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+   <title>BudgetBud - Manage Budgets</title> 
+   <link rel="stylesheet" href="appstyles.css">
+   <script type="text/javascript">
+window.addEventListener('load',function(){function loadHeyy(){window.heyySettings={widgetId:"pllhkLtTB3weRcr2",baseUrl:"https://live-chat.heyy.io"};var s=document.createElement('script');s.type='text/javascript';s.async=true;s.src='https://assets.heyy.io/live-chat/live-chat.js';document.head.appendChild(s);}if('requestIdleCallback'in window){requestIdleCallback(loadHeyy);}else{setTimeout(loadHeyy,3000);}});
+</script> 
+      
+</head>
+<body>
+   <div class="container"> <!-- Main app container -->
+       <div class="phone-frame"> <!-- Phone UI wrapper -->
+           <div class="screen"> <!-- Screen display -->
+               
+               <!-- Top status bar (time + menu) -->
+               <div class="status-bar">
+                   <span id="currentTime"></span> <!-- Live time display -->
+                   
+                   <!-- Dropdown menu (3 dots) -->
+                   <div class="menu-wrapper">
+                       <span class="menu-dots" onclick="toggleMenu()">●●●</span> <!-- Menu toggle -->
+                       <div class="menu-dropdown" id="menuDropdown"> <!-- Hidden dropdown -->
+                           <div onclick="logout()">Logout</div> <!-- Logout option -->
+                       </div>
+                   </div>
+               </div>
+              
+               <div class="header">Manage Budgets</div> <!-- Page title -->
+              
+               <div class="content" style="padding-bottom: 80px;"> <!-- Main content area -->
+                   
+                   <!-- Total budget summary -->
+                   <div class="summary-box" style="background: #E3F2FD; border: 2px solid #2196F3;">
+                       <div class="summary-label">Total Monthly Budget</div>
+                       <div class="summary-value" style="color: #2196F3;" id="totalBudget">$0</div> <!-- Dynamic total -->
+                   </div>
+                  
+                   <div class="section-title">Your Budgets</div> <!-- Section title -->
+                  
+                   <!-- Budget list (filled dynamically from backend) -->
+                   <div id="budgetsList">
+                       <div style="text-align: center; padding: 40px 20px; color: #999;">
+                           <p style="font-size: 48px; margin-bottom: 10px;">💸</p>
+                           <p>No budgets yet!</p>
+                           <p style="font-size: 13px; margin-top: 10px;">Click the + button below to create your first budget</p>
+                       </div>
+                   </div>
+                  
+                   <div class="section-title" style="margin-top: 30px;">Actions</div>
+                  
+                   <!-- Action buttons -->
+                   <button class="btn-primary" style="margin-bottom: 10px;" onclick="openModal()">Create New Budget</button>
+                   <button class="btn-secondary" onclick="viewReport()">View Spending Report</button>
+               </div>
+              
+               <!-- Floating add button -->
+               <div class="add-button" onclick="openModal()">+</div>
+              
+               <!-- Bottom navigation bar -->
+               <div class="nav-bar">
+                   <div class="nav-item">
+                       <a href="home.html" class="nav-icon">Home</a>
+                   </div>
+                   <div class="nav-item">
+                       <a href="addpurchase.html" class="nav-icon">Add</a>
+                   </div>
+                   <div class="nav-item active">
+                       <a href="budget.html" class="nav-icon">Budgets</a>
+                   </div>
+                   <div class="nav-item">
+                       <a href="pricetracker.html" class="nav-icon">Prices</a>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+  
+   <!--Budget Modal-->
+   <div id="budgetModal" class="modal"> 
+       <div class="modal-content">
+           
+           <!-- Modal header -->
+           <div class="modal-header">
+               Create New Budget
+               <span class="close-modal" onclick="closeModal()">&times;</span> <!-- Close button -->
+           </div>
+          
+           <!-- Budget form -->
+           <form id="budgetForm">
+               
+               <!-- Emoji selector -->
+               <div class="form-group">
+                   <label class="form-label">Choose an Emoji</label>
+                   <div class="emoji-picker" id="emojiPicker">
+                       <!-- Each emoji represents a category -->
+                       <div class="emoji-option" onclick="selectEmoji('🛒')">🛒</div>
+                       <div class="emoji-option" onclick="selectEmoji('👕')">👕</div>
+                       <div class="emoji-option" onclick="selectEmoji('📱')">📱</div>
+                       <div class="emoji-option" onclick="selectEmoji('🎮')">🎮</div>
+                       <div class="emoji-option" onclick="selectEmoji('🍕')">🍕</div>
+                       <div class="emoji-option" onclick="selectEmoji('⛽')">⛽</div>
+                       <div class="emoji-option" onclick="selectEmoji('🏠')">🏠</div>
+                       <div class="emoji-option" onclick="selectEmoji('✈️')">✈️</div>
+                       <div class="emoji-option" onclick="selectEmoji('🏥')">🏥</div>
+                       <div class="emoji-option" onclick="selectEmoji('📚')">📚</div>
+                       <div class="emoji-option" onclick="selectEmoji('🎬')">🎬</div>
+                       <div class="emoji-option" onclick="selectEmoji('💄')">💄</div>
+                   </div>
+                   <input type="hidden" id="selectedEmoji" value="🛒"> <!-- Stores selected emoji -->
+               </div>
+              
+               <!-- Budget name input -->
+               <div class="form-group">
+                   <label class="form-label">Budget Name</label>
+                   <input type="text" class="form-input" id="budgetName" placeholder="e.g., Groceries, Clothing" required>
+               </div>
+              
+               <!-- Budget amount input -->
+               <div class="form-group">
+                   <label class="form-label">Monthly Limit ($)</label>
+                   <input type="number" class="form-input" id="budgetLimit" placeholder="0.00" step="0.01" min="0" required>
+               </div>
+              
+               <!-- Form buttons -->
+               <button type="submit" class="btn-primary">Create Budget</button>
+               <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+           </form>
+       </div>
+   </div>
+  
+   <script>
+        //Update time
+        function updateTime() {
+            const now = new Date(); // Get current time
+            const hours = now.getHours(); // Extract hours
+            const minutes = now.getMinutes().toString().padStart(2, '0'); // Format minutes
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`; // Display time
+        }
+        updateTime(); // Run immediately
+        setInterval(updateTime, 60000); // Update every minute
+
+        //Toggle dropdown menu visibility
+        function toggleMenu() {
+            const menu = document.getElementById('menuDropdown');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        //Logout user
+        function logout() {
+            localStorage.removeItem('isLoggedIn'); // Remove login flag
+            window.location.href = 'index.html'; // Redirect to login page
+        }
+
+        //Close when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('menuDropdown');
+            if (!e.target.closest('.menu-wrapper') && menu) {
+                menu.style.display = 'none'; // Hide menu if click outside
+            }
+        });
+    
+        //Check if user is logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html'; // Redirect if not logged in
+        }
+
+        let selectedEmojiValue = '🛒'; // Default emoji
+        
+        //Map emojis to category names
+        const categoryNames = {
+            "🛒": "Groceries",
+            "👕": "Clothing",
+            "📱": "Electronics",
+            "🎮": "Gaming",
+            "🍕": "Food",
+            "⛽": "Gas",
+            "🏠": "Housing",
+            "✈️": "Travel",
+            "🏥": "Healthcare",
+            "📚": "Education",
+            "🎬": "Entertainment",
+            "💄": "Beauty"
+        };
+        
+        //Handle emoji selection
+        function selectEmoji(emoji) {
+            selectedEmojiValue = emoji; // Store selected emoji
+        
+            document.querySelectorAll('.emoji-option').forEach(el => {
+                el.classList.remove('selected'); // Remove previous selection
+            });
+        
+            event.target.classList.add('selected'); // Highlight selected emoji
+        }
+        
+        //Open modal
+        function openModal(){
+            document.getElementById('budgetModal').classList.add('active');
+        }
+        
+        //Close modal
+        function closeModal(){
+            document.getElementById('budgetModal').classList.remove('active');
+        }
+
+        //View spending report
+        async function viewReport() {
+
+            const userId = parseInt(localStorage.getItem("userId"));
+
+            if (!userId) {
+                alert("User not logged in");
+                return;
+            }
+
+            try {
+
+                const response = await fetch(`/report/${userId}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    alert("Failed to load report");
+                    return;
+                }
+
+                let report = "📊 Spending Report\n\n";
+
+                let totalSpent = 0;
+                let totalTransactions = 0;
+
+                data.forEach(item => {
+                    totalSpent += parseFloat(item.total_spent);
+                    totalTransactions += item.total_transactions;
+                });
+
+                report += `Total Spent: $${totalSpent.toFixed(2)}\n`;
+                report += `Total Transactions: ${totalTransactions}\n\n`;
+
+                report += "By Category:\n";
+
+                data.forEach(item => {
+                    report += `${item.category_name}: $${parseFloat(item.total_spent).toFixed(2)}\n`;
+                });
+
+                alert(report);
+
+            } catch (err) {
+                console.error(err);
+                alert("Error loading report");
+            }
+        }
+        
+        //Fetch and display budgets from backend
+        async function loadBudgets(){
+        
+            const userId = parseInt(localStorage.getItem("userId")); // Get logged in user ID
+            if (!userId) {
+                alert("User not logged in");
+                return;
+            }
+        
+            const response = await fetch(`/budgets/${userId}`); // GET budgets
+            const budgets = await response.json();
+        
+            const budgetsList = document.getElementById('budgetsList');
+        
+            //If no budgets
+            if(budgets.length === 0){
+                budgetsList.innerHTML = `<p style="text-align:center;">No budgets yet!</p>`;
+                return;
+            }
+        
+            budgetsList.innerHTML = ""; // Clear previous list
+        
+            let totalBudget = 0; // Track total
+        
+            budgets.forEach(budget => {
+        
+                totalBudget += parseFloat(budget.monthly_limit); // Sum budgets
+        
+                const percent = (budget.spent / budget.monthly_limit) * 100; // Usage %
+        
+                //Determine color based on usage
+                let color = "#4CAF50";
+                if(percent >= 100) color="#F44336";
+                else if(percent >= 75) color="#FF9800";
+        
+                //Create budget item HTML
+                const html = `
+                <div class="budget-list-item">
+        
+                    <div class="budget-list-info">
+                        <h3>${budget.category_name}</h3>
+        
+                        <div class="budget-list-details">
+                            <div class="mini-icon" style="background:${color};"></div>
+                            ${percent.toFixed(0)}% used
+                        </div>
+                    </div>
+        
+                    <div class="budget-list-amount">
+        
+                        <div class="amount-spent">$${budget.spent}</div>
+                        <div class="amount-limit">of $${budget.monthly_limit}</div>
+        
+                        <!-- Delete button -->
+                        <button onclick="deleteBudget(${budget.budget_id})"
+                        style="margin-top:8px;padding:4px 12px;background:#F44336;color:white;border:none;border-radius:4px;">
+                        Delete
+                        </button>
+        
+                    </div>
+        
+                </div>
+                `;
+        
+                budgetsList.innerHTML += html; // Add to DOM
+        
+            });
+        
+            //Update total budget display
+            document.getElementById("totalBudget").textContent = "$"+totalBudget.toFixed(2);
+        }
+        
+        //Handle form submission
+        document.getElementById("budgetForm").addEventListener("submit", async function(e){
+        
+            e.preventDefault(); // Prevent page reload
+        
+            const monthly_limit = parseFloat(document.getElementById("budgetLimit").value);
+            const user_id = parseInt(localStorage.getItem("userId")); 
+        
+            const category_name = categoryNames[selectedEmojiValue]; // Get category name
+        
+            //Get or create category in backend
+            const catRes = await fetch("/getOrCreateCategory", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ category_name })
+            });
+        
+            const catData = await catRes.json();
+            const category_id = catData.category_id;
+        
+            //Create budget
+            const response = await fetch("/createBudget",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify({
+                    monthly_limit,
+                    weekly_limit:0,
+                    user_id,
+                    category_id
+                })
+            });
+        
+            const data = await response.json();
+        
+            if(response.ok){
+                alert("Budget created!");
+                closeModal();
+                loadBudgets(); // Refresh list
+            }else{
+                alert(data.error);
+            }
+        
+        });
+        
+        //Delete budget
+        async function deleteBudget(id){
+        
+            if(!confirm("Delete this budget?")) return;
+        
+            const response = await fetch(`/budget/${id}`,{
+                method:"DELETE"
+            });
+        
+            if(response.ok){
+                loadBudgets(); // Refresh after delete
+            }else{
+                alert("Delete failed");
+            }
+        
+        }
+        
+        loadBudgets(); // Load budgets on page load     
+   </script>
+
+</body>
+</html>
