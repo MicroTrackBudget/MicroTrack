@@ -521,7 +521,7 @@ setInterval(async () => {
                 : null;
 
             const now = new Date();
-            const COOLDOWN = 60 * 60 * 1000; // 1 hour (cane be changed to later - Luis)
+            const COOLDOWN = 365 * 24 * 60 * 60 * 1000; // changed to 1 year
 
             if (!isNaN(targetPrice) && currentPrice <= targetPrice) {
 
