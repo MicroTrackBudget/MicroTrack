@@ -126,9 +126,6 @@ h1 {
     transition: all 0.3s ease;
     text-decoration: none;
 }
-.nav-icon {
-    outline: 2px solid red;
-}
 
 .nav-item.active .nav-icon {
     background: #4CAF50;
