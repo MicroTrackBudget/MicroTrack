@@ -363,7 +363,7 @@ app.post("/budget/savings", async (req, res) => {
     if (userId == null || categoryId == null) return res.json({ remainingBudget });
   
     try {
-      const [rows] = await pool.query(
+      const [rows] = await dbAsync.query(
         `SELECT monthly_limit, weekly_limit FROM Budget WHERE user_id = ? AND category_id = ?`,
         [userId, categoryId]
       );
@@ -410,7 +410,7 @@ app.post("/api/savings/save", async (req, res) => {
   
     const remainingGoal = targetAmount - savedAmount;
     try {
-      const [result] = await pool.query(
+      const [result] = await dbAsync.query(
         `INSERT INTO SavingsGoal (user_id, goal_name, target_amount, saved_amount, remaining_goal, created_at) VALUES (?, ?, ?, ?, ?, NOW())`,
         [userId, goalName, targetAmount, savedAmount, remainingGoal]
       );
@@ -434,7 +434,7 @@ app.post("/api/savings/calculate", async (req, res) => {
     if (userId == null || goalId == null) return res.json({ remainingGoal });
   
     try {
-      const [rows] = await pool.query(
+      const [rows] = await dbAsync.query(
         `SELECT goal_name, target_amount, saved_amount FROM SavingsGoal WHERE user_id = ? AND goal_id = ?`,
         [userId, goalId]
       );
@@ -450,7 +450,7 @@ app.get("/api/savings/latest", async (req, res) => {
     const userId = req.query.userId;
     if (userId == null) return res.status(400).json({ error: "userId is required." });
     try {
-      const [rows] = await pool.query(
+      const [rows] = await dbAsync.query(
         `SELECT goal_id, goal_name, target_amount, saved_amount, remaining_goal, created_at FROM SavingsGoal WHERE user_id = ? ORDER BY created_at DESC LIMIT 1`,
         [userId]
       );
@@ -499,7 +499,7 @@ app.put("/api/savings/update/:goalId", async (req, res) => {
   
     const remainingGoal = targetAmount - savedAmount;
     try {
-      const [result] = await pool.query(
+      const [result] = await dbAsync.query(
         `UPDATE SavingsGoal SET goal_name = ?, target_amount = ?, saved_amount = ?, remaining_goal = ? WHERE goal_id = ?`,
         [goalName, targetAmount, savedAmount, remainingGoal, goalId]
       );
@@ -513,7 +513,7 @@ app.put("/api/savings/update/:goalId", async (req, res) => {
   app.delete("/api/savings/delete/:goalId", async (req, res) => {
     const { goalId } = req.params;
     try {
-      const [result] = await pool.query(`DELETE FROM SavingsGoal WHERE goal_id = ?`, [goalId]);
+      const [result] = await dbAsync.query(`DELETE FROM SavingsGoal WHERE goal_id = ?`, [goalId]);
       if (result.affectedRows === 0) return res.status(404).json({ error: "Goal not found." });
       return res.json({ message: "Goal deleted." });
     } catch (err) {
@@ -526,7 +526,7 @@ app.get("/api/group/my-groups", async (req, res) => {
     const userId = req.query.userId;
     if (!userId) return res.status(400).json({ error: "userId is required." });
     try {
-      const [rows] = await pool.query(
+      const [rows] = await dbAsync.query(
         `SELECT g.group_id, g.group_name, g.invite_code, g.created_by
          FROM GroupBudget g
          JOIN GroupBudgetMember m ON g.group_id = m.group_id
@@ -544,12 +544,12 @@ app.get("/api/group/my-groups", async (req, res) => {
     if (!userId || !groupName) return res.status(400).json({ error: "Missing fields." });
     const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     try {
-      const [result] = await pool.query(
+      const [result] = await dbAsync.query(
         `INSERT INTO GroupBudget (group_name, invite_code, created_by) VALUES (?, ?, ?)`,
         [groupName, inviteCode, userId]
       );
       const groupId = result.insertId;
-      await pool.query(`INSERT INTO GroupBudgetMember (group_id, user_id) VALUES (?, ?)`, [groupId, userId]);
+      await dbAsync.query(`INSERT INTO GroupBudgetMember (group_id, user_id) VALUES (?, ?)`, [groupId, userId]);
       return res.json({ groupId, groupName, inviteCode });
     } catch (err) {
       return res.status(500).json({ error: "Could not create plan." });
@@ -560,13 +560,13 @@ app.get("/api/group/my-groups", async (req, res) => {
     const { userId, inviteCode } = req.body;
     if (!userId || !inviteCode) return res.status(400).json({ error: "Missing fields." });
     try {
-      const [groups] = await pool.query(
+      const [groups] = await dbAsync.query(
         `SELECT * FROM GroupBudget WHERE invite_code = ? LIMIT 1`,
         [inviteCode.toUpperCase()]
       );
       if (groups.length === 0) return res.status(404).json({ error: "Invalid invite code." });
       const group = groups[0];
-      await pool.query(
+      await dbAsync.query(
         `INSERT IGNORE INTO GroupBudgetMember (group_id, user_id) VALUES (?, ?)`,
         [group.group_id, userId]
       );
@@ -580,7 +580,7 @@ app.get("/api/group/my-groups", async (req, res) => {
     const { groupId, userId, income, spending } = req.body;
     if (!groupId || !userId) return res.status(400).json({ error: "Missing fields." });
     try {
-      await pool.query(
+      await dbAsync.query(
         `UPDATE GroupBudgetMember SET income = ?, spending = ? WHERE group_id = ? AND user_id = ?`,
         [income || 0, spending || 0, groupId, userId]
       );
@@ -594,7 +594,7 @@ app.get("/api/group/my-groups", async (req, res) => {
     const { groupId, goalName, groupGoal } = req.body;
     if (!groupId) return res.status(400).json({ error: "Missing fields." });
     try {
-      await pool.query(
+      await dbAsync.query(
         `UPDATE GroupBudget SET goal_name = ?, group_goal = ? WHERE group_id = ?`,
         [goalName || "", groupGoal || 0, groupId]
       );
@@ -607,7 +607,7 @@ app.get("/api/group/my-groups", async (req, res) => {
   app.get("/api/group/plan/:groupId", async (req, res) => {
     const { groupId } = req.params;
     try {
-      const [members] = await pool.query(
+      const [members] = await dbAsync.query(
         `SELECT u.user_id, u.username, m.income, m.spending,
                 COALESCE((SELECT SUM(amount) FROM GroupContribution WHERE group_id = ? AND user_id = u.user_id), 0) AS total_contributed
          FROM GroupBudgetMember m
@@ -615,7 +615,7 @@ app.get("/api/group/my-groups", async (req, res) => {
          WHERE m.group_id = ?`,
         [groupId, groupId]
       );
-      const [groups] = await pool.query(
+      const [groups] = await dbAsync.query(
         `SELECT goal_name, group_goal FROM GroupBudget WHERE group_id = ? LIMIT 1`,
         [groupId]
       );
@@ -630,7 +630,7 @@ app.get("/api/group/my-groups", async (req, res) => {
     const { groupId, userId } = req.body;
     if (!groupId || !userId) return res.status(400).json({ error: "Missing fields." });
     try {
-      await pool.query(`DELETE FROM GroupBudgetMember WHERE group_id = ? AND user_id = ?`, [groupId, userId]);
+      await dbAsync.query(`DELETE FROM GroupBudgetMember WHERE group_id = ? AND user_id = ?`, [groupId, userId]);
       return res.json({ message: "Left group." });
     } catch (err) {
       return res.status(500).json({ error: "Could not leave group." });
@@ -641,7 +641,7 @@ app.get("/api/group/my-groups", async (req, res) => {
     const { groupId, userId } = req.body;
     if (!groupId || !userId) return res.status(400).json({ error: "Missing fields." });
     try {
-      await pool.query(`DELETE FROM GroupBudgetMember WHERE group_id = ? AND user_id = ?`, [groupId, userId]);
+      await dbAsync.query(`DELETE FROM GroupBudgetMember WHERE group_id = ? AND user_id = ?`, [groupId, userId]);
       return res.json({ message: "Member removed." });
     } catch (err) {
       return res.status(500).json({ error: "Could not remove member." });
@@ -658,12 +658,12 @@ app.get("/api/group/my-groups", async (req, res) => {
     if (typeof amount !== "number" || amount <= 0)
       return res.status(400).json({ error: "Amount must be a positive number." });
     try {
-      const [result] = await pool.query(
+      const [result] = await dbAsync.query(
         `INSERT INTO GroupContribution (group_id, user_id, amount, note) VALUES (?, ?, ?, ?)`,
         [groupId, userId, amount, note || null]
       );
       // Return new total for this user
-      const [totals] = await pool.query(
+      const [totals] = await dbAsync.query(
         `SELECT SUM(amount) AS total FROM GroupContribution WHERE group_id = ? AND user_id = ?`,
         [groupId, userId]
       );
@@ -677,7 +677,7 @@ app.get("/api/group/my-groups", async (req, res) => {
   app.get("/api/group/contributions/:groupId", async (req, res) => {
     const { groupId } = req.params;
     try {
-      const [rows] = await pool.query(
+      const [rows] = await dbAsync.query(
         `SELECT c.contribution_id, u.username, c.amount, c.note, c.created_at
          FROM GroupContribution c
          JOIN Users u ON c.user_id = u.user_id
@@ -695,7 +695,7 @@ app.get("/api/group/my-groups", async (req, res) => {
   app.delete("/api/group/contribution/:contributionId", async (req, res) => {
     const { contributionId } = req.params;
     try {
-      const [result] = await pool.query(
+      const [result] = await dbAsync.query(
         `DELETE FROM GroupContribution WHERE contribution_id = ?`,
         [contributionId]
       );
