@@ -27,7 +27,7 @@
                     BudgetBud
                 </div>
               
-                <div class="content">
+                <div class="content" id="mainContent" style="visibility:hidden;">
                     <div class="summary-box">
                         <div class="summary-label">Monthly Budget Remaining</div>
                         <div class="summary-value" id="totalRemaining">$0.00</div>
@@ -129,6 +129,7 @@
     //Load budgets 
     async function loadBudgets() {
         const userId = parseInt(localStorage.getItem("userId"));
+        const mainContent = document.getElementById("mainContent");
         if (!userId) return;
         
         const response = await fetch(`${API_URL}/budgets/${userId}`);
@@ -189,6 +190,7 @@
 
         document.getElementById('totalRemaining').textContent = `$${totalRemaining.toFixed(2)}`;
         document.getElementById('totalBudget').textContent = `$${totalBudgetAmount.toFixed(2)}`;
+        mainContent.style.visibility = "visible";
     }
     
     //Load budgets on page load

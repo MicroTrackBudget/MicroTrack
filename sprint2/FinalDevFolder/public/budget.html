@@ -31,7 +31,7 @@
 
                 <div class="header">Manage Budgets</div> <!-- Page title -->
 
-                <div class="content" style="padding-bottom: 80px;"> <!-- Main content area -->
+                <div class="content" id="mainContent" style="padding-bottom:80px; visibility:hidden;"> <!-- Main content area -->
 
                     <!-- Total budget summary -->
                     <div class="summary-box" style="background: #E3F2FD; border: 2px solid #2196F3;">
@@ -265,6 +265,7 @@
 
         //Fetch and display budgets from backend
         async function loadBudgets() {
+            const mainContent = document.getElementById("mainContent");
 
             const userId = parseInt(localStorage.getItem("userId")); // Get logged in user ID
             if (!userId) {
@@ -335,6 +336,7 @@
 
             //Update total budget display
             document.getElementById("totalBudget").textContent = "$" + totalBudget.toFixed(2);
+            mainContent.style.visibility = "visible";
         }
 
         //Handle form submission

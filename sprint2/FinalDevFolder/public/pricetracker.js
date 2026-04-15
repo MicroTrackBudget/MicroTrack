@@ -169,4 +169,10 @@ async function updateAllPrices() {
 setInterval(() => { if (document.getElementById('autoUpdateToggle').checked) updateAllPrices(); }, 24*60*60*1000);
 
 // --- Initial load ---
-loadTrackedItems();
+document.addEventListener("DOMContentLoaded", () => {
+    const mainContent = document.getElementById("mainContent");
+
+    loadTrackedItems().then(() => {
+        mainContent.style.visibility = "visible";
+    });
+});
