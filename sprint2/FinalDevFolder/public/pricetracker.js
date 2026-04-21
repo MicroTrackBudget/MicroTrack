@@ -135,7 +135,7 @@ async function removeProduct(productId) {
     if (!confirmDelete) return;
 
     try {
-        const response = await fetch(`/sprint2/api/remove-product?id=${productId}`, {
+        const response = await fetch(`${API_URL}/sprint2/api/remove-product?id=${productId}`, {
             method: 'DELETE'
         });
 
