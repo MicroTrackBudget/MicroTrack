@@ -137,6 +137,8 @@
 
         const budgetList = document.getElementById('budgetList');
 
+        mainContent.style.visibility = "visible";
+        
         if (budgets.length === 0) {
             return;
         }
@@ -190,7 +192,6 @@
 
         document.getElementById('totalRemaining').textContent = `$${totalRemaining.toFixed(2)}`;
         document.getElementById('totalBudget').textContent = `$${totalBudgetAmount.toFixed(2)}`;
-        mainContent.style.visibility = "visible";
     }
     
     //Load budgets on page load
