@@ -381,6 +381,31 @@ app.get('/budgets/:userId', (req,res)=>{
     );
 });
 
+app.get('/report/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  
+  try {
+      const [rows] = await dbAsync.query(
+          `SELECT S.category_name,
+                  COALESCE(SUM(T.transaction_amount), 0) AS total_spent,
+                  COUNT(T.transaction_id) AS total_transactions
+           FROM SpendCategory S
+           LEFT JOIN Transactions T ON T.category_id = S.category_id AND T.user_id = ?
+           WHERE S.category_id IN (
+               SELECT DISTINCT category_id FROM Transactions WHERE user_id = ?
+           )
+           GROUP BY S.category_id, S.category_name
+           ORDER BY total_spent DESC`,
+          [userId, userId]
+      );
+      
+      res.json(rows);
+  } catch (err) {
+      console.error("Report error:", err);
+      res.status(500).json({ error: err.message });
+  }
+});
+
 // CALCULATOR APIs 
 // BUDGET CALCULATOR 
 app.post("/budget/savings", async (req, res) => {
