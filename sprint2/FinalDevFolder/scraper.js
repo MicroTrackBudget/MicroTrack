@@ -5,6 +5,40 @@ const cheerio = require('cheerio');
 // Replace with your real ScrapingBee API key
 const SCRAPINGBEE_API_KEY = 'JRIM6BO87GOUTR7WU0RO1AVXDKAH9TOAB6LN4YFDA1IMF2OP5WGC7ZL579VPCHJKE96T1VEWZNA23WEL';
 
+// --- Clean full Amazon URL to ASIN ---
+function cleanAmazonUrl(productUrl) {
+    const match = productUrl.match(/\/dp\/([A-Z0-9]{10})/);
+    if (!match) return productUrl;
+    return `https://www.amazon.com/dp/${match[1]}`;
+  }
+  
+  // --- Resolve a.co short links ---
+  async function resolveAmazonUrl(productUrl) {
+    if (productUrl.includes('amazon.com')) {
+      return cleanAmazonUrl(productUrl);
+    }
+    try {
+      const response = await axios.get(productUrl, {
+        maxRedirects: 5,
+        validateStatus: (status) => status < 400,
+      });
+      const finalUrl = response.request.res.responseUrl;
+      console.log('Resolved short URL to:', finalUrl);
+      return cleanAmazonUrl(finalUrl);
+    } catch (err) {
+      console.error('Failed to resolve Amazon short URL:', err.message);
+      return productUrl;
+    }
+  }
+  
+  // --- Parse a price string like "$19.99" or "19.99" → 19.99 ---
+  function parsePrice(text) {
+    if (!text) return null;
+    const cleaned = text.replace(/[^0-9.]/g, '');
+    const num = Number(cleaned);
+    return isNaN(num) || num === 0 ? null : num;
+  }
+
 /**
  * Get Walmart product price from URL
  * @param {string} productUrl 
