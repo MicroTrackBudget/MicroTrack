@@ -3,7 +3,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 // Replace with your real ScrapingBee API key
-const SCRAPINGBEE_API_KEY = 'JRIM6BO87GOUTR7WU0RO1AVXDKAH9TOAB6LN4YFDA1IMF2OP5WGC7ZL579VPCHJKE96T1VEWZNA23WEL';
+const SCRAPINGBEE_API_KEY = 'ZNC9PKOJIAE1XDW3718ZUQ8T2SC3FSWZTOC0HSAYITREL7NK0F3HX1B0GMF9H31WX9HWB5BKIFAKT9QZ';
 
 // --- Clean full Amazon URL to ASIN ---
 function cleanAmazonUrl(productUrl) {
