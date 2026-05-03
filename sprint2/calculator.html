@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBud - Calculator</title>
+    <link rel="stylesheet" href="appstyles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="status-bar">
+                    <span id="currentTime"></span>
+                    <div class="menu-wrapper">
+                        <span class="menu-dots" onclick="toggleMenu()">●●●</span>
+                        <div class="menu-dropdown" id="menuDropdown">
+                            <div onclick="logout()">Logout</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header">Calculator</div>
+
+                <div class="content" style="padding-bottom: 80px;">
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button id="tab-budget" onclick="switchTab('budget')"
+                            style="flex:1; padding:10px; border-radius:8px; border:2px solid #4CAF50;
+                                   background:#4CAF50; color:white; font-weight:bold; cursor:pointer; font-size:12px;">
+                            Budget
+                        </button>
+                        <button id="tab-savings" onclick="switchTab('savings')"
+                            style="flex:1; padding:10px; border-radius:8px; border:2px solid #4CAF50;
+                                   background:white; color:#4CAF50; font-weight:bold; cursor:pointer; font-size:12px;">
+                            Savings
+                        </button>
+                        <button id="tab-group" onclick="switchTab('group')"
+                            style="flex:1; padding:10px; border-radius:8px; border:2px solid #4CAF50;
+                                   background:white; color:#4CAF50; font-weight:bold; cursor:pointer; font-size:12px;">
+                            Group
+                        </button>
+                    </div>
+
+                    <!-- BUDGET CALCULATOR -->
+                    <div id="panel-budget">
+                        <div class="budget-card">
+                            <div class="budget-header" style="margin-bottom:15px;">
+                                <span>💰 Budget Calculator</span>
+                            </div>
+
+                            <!-- start of new code 2 -->
+                            <!-- new — Amount You Have live balance box that updates with income and spending inputs — 04/27/2026 -->
+                            <div id="bc-balance-box" style="background:#E8F5E9; border-radius:10px; padding:12px; margin-bottom:15px; text-align:center;">
+                                <div style="font-size:12px; color:#555; margin-bottom:4px;">💵 Amount You Have</div>
+                                <div id="bc-balance" style="font-size:24px; font-weight:800; color:#4CAF50;">$0.00</div>
+                            </div>
+                            <!-- end of new code 2 -->
+
+                            <div class="form-group">
+                                <label class="form-label">Income ($)</label>
+                                <!-- start of new code 3 -->
+                                <!-- new — Income input. Live balance hook removed; the Amount You Have only changes when Calculate is clicked — 04/30/2026 -->
+                                <input type="number" class="form-input" id="bc-income" placeholder="e.g. 2000" min="0">
+                                <!-- end of new code 3 -->
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Spending ($)</label>
+                                <!-- start of new code 4 -->
+                                <!-- new — Spending input. Live balance hook removed; the Amount You Have only changes when Calculate is clicked — 04/30/2026 -->
+                                <input type="number" class="form-input" id="bc-spending" placeholder="e.g. 800" min="0">
+                                <!-- end of new code 4 -->
+                            </div>
+
+                            <!-- start of new code 27 -->
+                            <!-- new — Replace vs Add toggle so the user picks how Calculate affects the Amount You Have — 04/30/2026 -->
+                            <div style="background:#f9f9f9; border-radius:8px; padding:10px 12px; margin-bottom:12px; border:1px solid #eee;">
+                                <div style="font-size:12px; color:#555; margin-bottom:6px; font-weight:600;">When you Calculate:</div>
+                                <label style="display:inline-block; margin-right:16px; font-size:13px; cursor:pointer; color:#333;">
+                                    <input type="radio" name="bc-mode" value="replace" checked> Replace balance
+                                </label>
+                                <label style="display:inline-block; font-size:13px; cursor:pointer; color:#333;">
+                                    <input type="radio" name="bc-mode" value="add"> Add to balance
+                                </label>
+                            </div>
+                            <!-- end of new code 27 -->
+
+                            <button class="btn-primary" onclick="calculateBudget()">Calculate</button>
+                            <div id="bc-error" style="display:none; margin-top:12px; background:#FFEBEE;
+                                border-left:4px solid #F44336; padding:10px 12px; border-radius:6px;
+                                font-size:13px; color:#F44336;"></div>
+                            <div id="bc-result" style="display:none; margin-top:15px;">
+                                <div class="calculated-box">
+                                    <div class="calc-row"><span>Income:</span><span id="bc-income-display">$0.00</span></div>
+                                    <div class="calc-row"><span>Spending:</span><span id="bc-spending-display">$0.00</span></div>
+                                    <div class="calc-row total"><span>Remaining Budget:</span><span id="bc-remaining">$0.00</span></div>
+                                    <div id="bc-limits" style="margin-top:10px; font-size:12px; color:#666;"></div>
+                                    <!-- start of new code 5 -->
+                                    <!-- new — Timestamp line that shows when the budget was calculated — 04/29/2026 -->
+                                    <div id="bc-time" style="margin-top:8px; font-size:11px; color:#888;"></div>
+                                    <!-- end of new code 5 -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SAVINGS GOAL -->
+                    <div id="panel-savings" style="display:none;">
+                        <div class="budget-card">
+                            <div class="budget-header" style="margin-bottom:15px;">
+                                <span>🎯 Savings Goal</span>
+                            </div>
+
+                            <!-- start of new code 15 -->
+                            <!-- new — Amount You Have mirror in Savings tab so the balance is visible from any tab — 04/30/2026 -->
+                            <div style="background:#E8F5E9; border-radius:10px; padding:12px; margin-bottom:15px; text-align:center;">
+                                <div style="font-size:12px; color:#555; margin-bottom:4px;">💵 Amount You Have</div>
+                                <div id="bc-balance-savings" style="font-size:24px; font-weight:800; color:#4CAF50;">$0.00</div>
+                            </div>
+                            <!-- end of new code 15 -->
+
+                            <div class="form-group">
+                                <label class="form-label">Goal Name</label>
+                                <input type="text" class="form-input" id="sg-name" placeholder="e.g. New Laptop">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Target Amount ($)</label>
+                                <input type="number" class="form-input" id="sg-target" placeholder="e.g. 1500" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Saved So Far ($)</label>
+                                <input type="number" class="form-input" id="sg-saved" placeholder="e.g. 400" min="0">
+                            </div>
+                            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                <button class="btn-primary" style="flex:2;" onclick="calculateSavings()">Calculate</button>
+                                <button class="btn-secondary" style="flex:1; margin-top:0;" onclick="saveSavings()">Save</button>
+                                <button class="btn-secondary" style="flex:1; margin-top:0;" onclick="openLoadModal()">Load</button>
+                            </div>
+                            <div id="sg-error" style="display:none; margin-top:12px; background:#FFEBEE;
+                                border-left:4px solid #F44336; padding:10px 12px; border-radius:6px;
+                                font-size:13px; color:#F44336;"></div>
+                            <div id="sg-result" style="display:none; margin-top:15px;">
+                                <div class="calculated-box">
+                                    <div class="calc-row"><span>Target:</span><span id="sg-target-display">$0.00</span></div>
+                                    <div class="calc-row"><span>Saved:</span><span id="sg-saved-display">$0.00</span></div>
+                                    <div class="calc-row total"><span>Still Needed:</span><span id="sg-remaining">$0.00</span></div>
+                                    <div id="sg-meta" style="margin-top:10px; font-size:12px; color:#666;"></div>
+                                </div>
+                                <div style="margin-top:12px;">
+                                    <div style="display:flex; justify-content:space-between; font-size:12px; color:#666; margin-bottom:4px;">
+                                        <span>Progress</span><span id="sg-percent">0%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="sg-progress-fill" style="width:0%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GROUP BUDGET PLANNER -->
+                    <div id="panel-group" style="display:none;">
+                        <div class="budget-card">
+                            <div class="budget-header" style="margin-bottom:15px;">
+                                <span>👥 Group Budget Planner</span>
+                            </div>
+
+                            <!-- start of new code 16 -->
+                            <!-- new — Amount You Have mirror in Group tab so the balance is visible from any tab — 04/30/2026 -->
+                            <div style="background:#E8F5E9; border-radius:10px; padding:12px; margin-bottom:15px; text-align:center;">
+                                <div style="font-size:12px; color:#555; margin-bottom:4px;">💵 Amount You Have</div>
+                                <div id="bc-balance-group" style="font-size:24px; font-weight:800; color:#4CAF50;">$0.00</div>
+                            </div>
+                            <!-- end of new code 16 -->
+
+                            <!-- Step 1: Create or Join -->
+                            <div id="grp-step-start">
+                                <p style="font-size:13px; color:#555; margin-bottom:15px;">
+                                    Plan a budget together with another user. Create a plan and share the invite code, or join one with a code.
+                                </p>
+                                <div style="margin-bottom:16px;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                        <span style="font-size:13px; font-weight:700; color:#222;">My Groups</span>
+                                        <span onclick="loadMyGroups()" style="font-size:12px; color:#4CAF50; cursor:pointer; font-weight:600;">🔄 Refresh</span>
+                                    </div>
+                                    <div id="grp-my-groups-list" style="display:flex; flex-direction:column; gap:8px;">
+                                        <div style="text-align:center; padding:12px; color:#aaa; font-size:12px;">Tap refresh to load your groups</div>
+                                    </div>
+                                </div>
+                                <div style="border-top:1px solid #eee; padding-top:14px;">
+                                    <div class="form-group">
+                                        <label class="form-label">Plan Name</label>
+                                        <input type="text" class="form-input" id="grp-name" placeholder="e.g. Rent + Bills">
+                                    </div>
+                                    <button class="btn-primary" onclick="createGroupPlan()" style="margin-bottom:10px;">➕ Create New Plan</button>
+                                    <div style="text-align:center; color:#aaa; font-size:12px; margin:8px 0;">— or join with a code —</div>
+                                    <div class="form-group">
+                                        <label class="form-label">Invite Code</label>
+                                        <input type="text" class="form-input" id="grp-invite-input"
+                                            placeholder="Enter code" maxlength="8"
+                                            style="text-transform:uppercase; letter-spacing:3px; font-weight:bold;">
+                                    </div>
+                                    <button class="btn-secondary" onclick="joinGroupPlan()" style="margin-top:0;">🔗 Join Plan</button>
+                                </div>
+                                <div id="grp-start-error" style="display:none; margin-top:12px; background:#FFEBEE;
+                                    border-left:4px solid #F44336; padding:10px 12px; border-radius:6px;
+                                    font-size:13px; color:#F44336;"></div>
+                            </div>
+
+                            <!-- Step 2: Plan view -->
+                            <div id="grp-step-plan" style="display:none;">
+
+                                <div style="background:#E8F5E9; border-radius:10px; padding:12px; margin-bottom:15px; text-align:center;">
+                                    <div style="font-size:12px; color:#555; margin-bottom:4px;">Invite Code</div>
+                                    <div id="grp-code-display" style="font-size:26px; font-weight:800; color:#4CAF50; letter-spacing:6px;"></div>
+                                    <div style="font-size:11px; color:#888; margin-top:4px;">Share this with the other user</div>
+                                </div>
+
+                                <div id="grp-plan-name" style="font-weight:700; font-size:15px; margin-bottom:4px; color:#222;"></div>
+                                <div id="grp-goal-line" style="font-size:12px; color:#4CAF50; margin-bottom:12px; font-weight:600;"></div>
+
+                                <!-- Group Goal -->
+                                <div style="background:#f9f9f9; border-radius:8px; padding:10px 12px; margin-bottom:14px; border:1px solid #eee;">
+                                    <div style="font-size:12px; font-weight:600; color:#555; margin-bottom:8px;">🎯 Group Goal</div>
+                                    <div class="form-group" style="margin-bottom:8px;">
+                                        <label class="form-label">Goal Name</label>
+                                        <input type="text" class="form-input" id="grp-goal-name-input" placeholder="e.g. Pay rent together">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:8px;">
+                                        <label class="form-label">Target Amount ($)</label>
+                                        <input type="number" class="form-input" id="grp-goal-amount-input" placeholder="e.g. 1200" min="0">
+                                    </div>
+                                    <button onclick="saveGroupGoal()"
+                                        style="width:100%; padding:8px; border-radius:7px; border:none; background:#4CAF50;
+                                               color:white; font-size:12px; font-weight:600; cursor:pointer;">
+                                        Set Goal
+                                    </button>
+                                </div>
+
+                                <!-- Contribute toward goal -->
+                                <div style="background:#f9f9f9; border-radius:8px; padding:10px 12px; margin-bottom:14px; border:1px solid #eee;">
+                                    <div style="font-size:12px; font-weight:600; color:#555; margin-bottom:8px;">💵 Add Contribution</div>
+                                    <div class="form-group" style="margin-bottom:8px;">
+                                        <label class="form-label">Amount ($)</label>
+                                        <input type="number" class="form-input" id="grp-contrib-amount" placeholder="e.g. 100" min="0">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:8px;">
+                                        <label class="form-label">Note <span style="color:#aaa; font-size:11px;">(optional)</span></label>
+                                        <input type="text" class="form-input" id="grp-contrib-note" placeholder="e.g. Week 1">
+                                    </div>
+                                    <button onclick="addContribution()"
+                                        style="width:100%; padding:8px; border-radius:7px; border:none; background:#4CAF50;
+                                               color:white; font-size:12px; font-weight:600; cursor:pointer;">
+                                        Add to Goal
+                                    </button>
+                                    <div id="grp-contrib-msg" style="display:none; margin-top:8px; font-size:12px;"></div>
+                                </div>
+
+                                <!-- Your Numbers -->
+                                <div style="font-size:12px; font-weight:600; color:#555; margin-bottom:8px;">Your Numbers</div>
+                                <div class="form-group">
+                                    <label class="form-label">Your Income ($)</label>
+                                    <!-- start of new code 17 -->
+                                    <!-- new — Group income input. The Amount You Have no longer changes here; only the contribution button affects it — 04/30/2026 -->
+                                    <input type="number" class="form-input" id="grp-my-income" placeholder="e.g. 2000" min="0">
+                                    <!-- end of new code 17 -->
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Your Spending ($)</label>
+                                    <!-- start of new code 18 -->
+                                    <!-- new — Group spending input. The Amount You Have no longer changes here; only the contribution button affects it — 04/30/2026 -->
+                                    <input type="number" class="form-input" id="grp-my-spending" placeholder="e.g. 800" min="0">
+                                    <!-- end of new code 18 -->
+                                </div>
+                                <button class="btn-primary" onclick="submitMyNumbers()" style="margin-bottom:12px;">Save My Numbers</button>
+                                <button class="btn-secondary" onclick="loadGroupPlan()" style="margin-top:0; margin-bottom:12px;">🔄 Refresh Plan</button>
+
+                                <div id="grp-plan-error" style="display:none; margin-bottom:12px; background:#FFEBEE;
+                                    border-left:4px solid #F44336; padding:10px 12px; border-radius:6px;
+                                    font-size:13px; color:#F44336;"></div>
+
+                                <!-- Group Summary -->
+                                <div id="grp-plan-result" style="display:none;">
+                                    <div style="font-size:12px; font-weight:600; color:#555; margin-bottom:8px;">📊 Group Summary</div>
+                                    <div id="grp-members-list" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;"></div>
+                                    <div class="calculated-box">
+                                        <div class="calc-row"><span>Combined Income:</span><span id="grp-total-income" style="font-weight:700;">$0.00</span></div>
+                                        <div class="calc-row"><span>Combined Spending:</span><span id="grp-total-spending" style="font-weight:700;">$0.00</span></div>
+                                        <div class="calc-row total"><span>Combined Remaining:</span><span id="grp-total-remaining" style="font-weight:700;">$0.00</span></div>
+                                        <div id="grp-goal-progress" style="display:none; margin-top:10px;">
+                                            <div style="display:flex; justify-content:space-between; font-size:12px; color:#666; margin-bottom:4px;">
+                                                <span id="grp-goal-label">Goal</span>
+                                                <span id="grp-goal-pct">0%</span>
+                                            </div>
+                                            <div style="background:#eee; border-radius:99px; height:6px;">
+                                                <div id="grp-goal-bar" style="height:6px; background:#4CAF50; border-radius:99px; width:0%;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contribution History -->
+                                    <div style="margin-top:14px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                            <span style="font-size:12px; font-weight:600; color:#555;">📋 Contribution History</span>
+                                            <span onclick="loadContributions()" style="font-size:11px; color:#4CAF50; cursor:pointer; font-weight:600;">🔄 Refresh</span>
+                                        </div>
+                                        <div id="grp-contributions-list" style="display:flex; flex-direction:column; gap:6px;">
+                                            <div style="text-align:center; padding:10px; color:#aaa; font-size:12px;">Tap refresh to load history</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex; gap:8px; margin-top:14px;">
+                                    <button onclick="leaveGroupView()"
+                                        style="flex:1; padding:8px; border-radius:8px; border:1px solid #ccc;
+                                               background:white; color:#888; font-size:12px; cursor:pointer;">
+                                        ← Back
+                                    </button>
+                                    <button onclick="leaveGroup()"
+                                        style="flex:1; padding:8px; border-radius:8px; border:1px solid #F44336;
+                                               background:white; color:#F44336; font-size:12px; font-weight:600; cursor:pointer;">
+                                        🚪 Leave Group
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- LOAD MODAL -->
+                <div id="load-modal" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%;
+                     background:rgba(0,0,0,0.45); z-index:999; border-radius:inherit;">
+                    <div style="position:absolute; bottom:0; left:0; right:0; background:white;
+                         border-radius:16px 16px 0 0; padding:20px 16px 32px; max-height:85%;
+                         overflow-y:auto; display:flex; flex-direction:column; gap:0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                            <span style="font-weight:700; font-size:15px;">📂 My Saved Goals</span>
+                            <span onclick="closeLoadModal()" style="cursor:pointer; font-size:20px; color:#999; line-height:1;">✕</span>
+                        </div>
+                        <div id="load-modal-error" style="display:none; margin-bottom:12px; background:#FFEBEE;
+                             border-left:4px solid #F44336; padding:10px 12px; border-radius:6px;
+                             font-size:13px; color:#F44336;"></div>
+                        <div id="load-modal-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    </div>
+                </div>
+
+                <div class="nav-bar">
+                    <div class="nav-item"><a href="home.html" class="nav-icon">Home</a></div>
+                    <div class="nav-item"><a href="addpurchase.html" class="nav-icon">Add</a></div>
+                    <div class="nav-item"><a href="budget.html" class="nav-icon">Budgets</a></div>
+                    <div class="nav-item"><a href="pricetracker.html" class="nav-icon">Prices</a></div>
+                    <div class="nav-item active"><a href="calculator.html" class="nav-icon">Calc</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BUDGET_URL  = "http://localhost:3000";
+        const SAVINGS_URL = "http://localhost:3000";
+
+        window.currentGroupId      = null;
+        window.currentGroupCreator = null;
+
+        function updateTime() {
+            const now = new Date();
+            const h = now.getHours();
+            const m = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${h}:${m}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+
+        function toggleMenu() {
+            const menu = document.getElementById('menuDropdown');
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('userId');
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('menuDropdown');
+            if (!e.target.closest('.menu-wrapper') && menu) menu.style.display = 'none';
+        });
+
+        if (!localStorage.getItem('isLoggedIn')) window.location.href = 'index.html';
+
+        const userReady = (async function resolveUserId() {
+            if (localStorage.getItem('userId')) return;
+            const email    = localStorage.getItem('userEmail');
+            const username = localStorage.getItem('userName') || email;
+            if (!email) return;
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/user/sync`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, username })
+                });
+                const data = await res.json();
+                if (res.ok && data.userId) localStorage.setItem('userId', data.userId);
+            } catch (err) { console.warn('Could not sync user:', err); }
+        })();
+
+        function switchTab(tab) {
+            document.getElementById('panel-budget').style.display  = tab === 'budget'  ? 'block' : 'none';
+            document.getElementById('panel-savings').style.display = tab === 'savings' ? 'block' : 'none';
+            document.getElementById('panel-group').style.display   = tab === 'group'   ? 'block' : 'none';
+            ['budget','savings','group'].forEach(t => {
+                const btn = document.getElementById('tab-' + t);
+                btn.style.background = tab === t ? '#4CAF50' : 'white';
+                btn.style.color      = tab === t ? 'white'   : '#4CAF50';
+            });
+            if (tab === 'group') loadMyGroups();
+        }
+
+        function fmt(n) {
+            const v = parseFloat(n);
+            return isNaN(v) ? '$0.00' : '$' + v.toFixed(2);
+        }
+
+        function showError(id, msg) {
+            const el = document.getElementById(id + '-error');
+            el.textContent = '⚠ ' + msg;
+            el.style.display = 'block';
+            const result = document.getElementById(id + '-result');
+            if (result) result.style.display = 'none';
+        }
+
+        function clearError(id) {
+            const el = document.getElementById(id + '-error');
+            if (el) el.style.display = 'none';
+        }
+
+        // BUDGET CALCULATOR
+
+        // start of new code 28
+        // new — Per-user storage key. Each logged-in account gets its own Amount You Have so balances are not shared across users on the same browser — 04/30/2026
+        function getBalanceKey() {
+            const uid = localStorage.getItem('userId');
+            return uid ? 'amount_you_have_' + uid : null;
+        }
+        function getStoredBalance() {
+            const key = getBalanceKey();
+            return key ? (parseFloat(localStorage.getItem(key)) || 0) : 0;
+        }
+        // end of new code 28
+
+        // start of new code 6
+        // new — Repaints the Amount You Have boxes from the stored balance for the logged-in user — 04/30/2026
+        function updateLiveBalance() {
+            const balance = getStoredBalance();
+            const text  = fmt(balance);
+            const color = balance < 0 ? '#F44336' : '#4CAF50';
+            ['bc-balance', 'bc-balance-savings', 'bc-balance-group'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = text; el.style.color = color; }
+            });
+        }
+        // end of new code 6
+
+        // start of new code 13
+        // new — Helpers the buttons call: setBalance overwrites, adjustBalance adds or subtracts. Both write to the per-user key — 04/30/2026
+        function setBalance(value) {
+            const key = getBalanceKey();
+            if (!key) return;
+            localStorage.setItem(key, String(value));
+            updateLiveBalance();
+        }
+        function adjustBalance(delta) {
+            setBalance(getStoredBalance() + delta);
+        }
+        // end of new code 13
+
+        // start of new code 14
+        // new — On page load paint twice: once right away (might be 0 if userId not synced yet) then again once userReady resolves so the balance is for the right account — 04/30/2026
+        updateLiveBalance();
+        userReady.then(() => updateLiveBalance());
+        // end of new code 14
+
+        async function calculateBudget() {
+            clearError('bc');
+            const income     = parseFloat(document.getElementById('bc-income').value);
+            const spending   = parseFloat(document.getElementById('bc-spending').value);
+
+            // start of new code 22
+            // new — Block Calculate when spending is more than income because that would push the Amount You Have below zero — 04/30/2026
+            if (!isNaN(income) && !isNaN(spending) && spending > income) {
+                return showError('bc', `You can't go over what you have. Spending of ${fmt(spending)} is more than income of ${fmt(income)} by ${fmt(spending - income)}.`);
+            }
+            // end of new code 22
+
+            // start of new code 11
+            // new — Pull userId from localStorage so the calculation auto-saves to the logged-in account, no manual ID typing — 04/30/2026
+            await userReady;
+            const userId = localStorage.getItem('userId');
+            // end of new code 11
+
+            const body = { income, spending };
+            if (userId) body.userId = parseInt(userId);
+            try {
+                const res  = await fetch(`${BUDGET_URL}/budget/savings`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok) return showError('bc', data.error || 'Something went wrong.');
+                document.getElementById('bc-income-display').textContent   = fmt(income);
+                document.getElementById('bc-spending-display').textContent = fmt(spending);
+                const remEl = document.getElementById('bc-remaining');
+                remEl.textContent = fmt(data.remainingBudget);
+                remEl.style.color = data.remainingBudget < 0 ? '#F44336' : '#4CAF50';
+
+                // start of new code 12
+                // new — Show a Saved-to-account indicator when the backend confirms it tied the calculation to the user — 04/30/2026
+                const limitsEl = document.getElementById('bc-limits');
+                if (data.saved && data.budgetId) {
+                    limitsEl.textContent = `✅ Saved to your account · ID #${data.budgetId}`;
+                    limitsEl.style.color = '#4CAF50';
+                } else if (!userId) {
+                    limitsEl.textContent = '⚠ Not saved — please log in again to save to your account.';
+                    limitsEl.style.color = '#F44336';
+                } else {
+                    limitsEl.textContent = '';
+                }
+                // end of new code 12
+
+                // start of new code 7
+                // new — Print the time the budget was calculated, falling back to client time if the server did not send one — 04/30/2026
+                const ts = data.calculatedAt ? new Date(data.calculatedAt) : new Date();
+                document.getElementById('bc-time').textContent = '🕒 Calculated at: ' + ts.toLocaleString();
+                // end of new code 7
+
+                // start of new code 19
+                // new — Calculate uses the toggle to decide. Replace overwrites the Amount You Have. Add stacks on top of the current balance — 04/30/2026
+                const bcDelta = data.remainingBudget != null ? data.remainingBudget : (income - spending);
+                const bcMode  = (document.querySelector('input[name="bc-mode"]:checked') || {}).value || 'replace';
+                if (bcMode === 'add') adjustBalance(bcDelta);
+                else                  setBalance(bcDelta);
+                // end of new code 19
+
+                document.getElementById('bc-result').style.display = 'block';
+            } catch (err) {
+                showError('bc', 'Could not reach the server.');
+            }
+        }
+
+        // SAVINGS GOAL 
+
+        async function calculateSavings() {
+            clearError('sg');
+            const targetAmount = parseFloat(document.getElementById('sg-target').value);
+            const savedAmount  = parseFloat(document.getElementById('sg-saved').value);
+            const userId       = localStorage.getItem('userId');
+            const body = { targetAmount, savedAmount };
+            if (userId) body.userId = parseInt(userId);
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/calculate`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok) return showError('sg', data.error || 'Something went wrong.');
+                document.getElementById('sg-target-display').textContent = fmt(targetAmount);
+                document.getElementById('sg-saved-display').textContent  = fmt(savedAmount);
+                const remEl = document.getElementById('sg-remaining');
+                remEl.textContent = fmt(data.remainingGoal);
+                remEl.style.color = data.remainingGoal <= 0 ? '#4CAF50' : '#333';
+                const pct = Math.min((savedAmount / targetAmount) * 100, 100) || 0;
+                document.getElementById('sg-percent').textContent = pct.toFixed(0) + '%';
+                document.getElementById('sg-progress-fill').style.width = pct + '%';
+                document.getElementById('sg-meta').textContent = data.goal_name ? `Goal: ${data.goal_name}` : '';
+                document.getElementById('sg-result').style.display = 'block';
+            } catch (err) { showError('sg', 'Could not reach the server. Make sure Both.js is running.'); }
+        }
+
+        async function saveSavings() {
+            clearError('sg');
+            await userReady;
+            const userId       = localStorage.getItem('userId');
+            const goalName     = document.getElementById('sg-name').value;
+            const targetAmount = parseFloat(document.getElementById('sg-target').value);
+            const savedAmount  = parseFloat(document.getElementById('sg-saved').value);
+            if (!userId)   return showError('sg', 'Could not identify your account. Please log out and log back in.');
+            if (!goalName) return showError('sg', 'Goal Name is required to save.');
+
+            // start of new code 23
+            // new — Block Save when the savedAmount is bigger than the Amount You Have for the logged-in user — 04/30/2026
+            const currentBalance = getStoredBalance();
+            if (!isNaN(savedAmount) && savedAmount > currentBalance) {
+                return showError('sg', `You can't go over what you have. Saving ${fmt(savedAmount)} is more than your balance of ${fmt(currentBalance)}.`);
+            }
+            // end of new code 23
+
+            try {
+                const checkRes  = await fetch(`${SAVINGS_URL}/api/savings/check-name?userId=${userId}&goalName=${encodeURIComponent(goalName)}`);
+                const checkData = await checkRes.json();
+                if (checkData.exists) {
+                    const override = confirm(`A goal named "${goalName}" already exists. Overwrite it?`);
+                    if (!override) return;
+                    const res  = await fetch(`${SAVINGS_URL}/api/savings/update/${checkData.goalId}`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ goalName, targetAmount, savedAmount })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) return showError('sg', data.error || 'Could not overwrite.');
+                    document.getElementById('sg-meta').textContent = `✅ Overwritten!`;
+                    document.getElementById('sg-result').style.display = 'block';
+                    return;
+                }
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/save`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: parseInt(userId), goalName, targetAmount, savedAmount })
+                });
+                const data = await res.json();
+                if (!res.ok) return showError('sg', data.error || 'Could not save.');
+                document.getElementById('sg-meta').textContent = `✅ Saved! Goal ID: ${data.goalId}`;
+                document.getElementById('sg-result').style.display = 'block';
+
+                // start of new code 20
+                // new — Saving a savings goal subtracts the savedAmount from the Amount You Have because that money is now allocated — 04/30/2026
+                if (!isNaN(savedAmount) && savedAmount > 0) adjustBalance(-savedAmount);
+                // end of new code 20
+            } catch (err) { showError('sg', 'Could not reach the server.'); }
+        }
+
+        async function loadLatest() {
+            clearError('sg');
+            await userReady;
+            const userId = localStorage.getItem('userId');
+            if (!userId) return showError('sg', 'Could not identify your account.');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/latest?userId=${userId}`);
+                const data = await res.json();
+                if (!res.ok) return showError('sg', data.error || 'No saved goals found.');
+                document.getElementById('sg-name').value   = data.goal_name    || '';
+                document.getElementById('sg-target').value = data.target_amount || '';
+                document.getElementById('sg-saved').value  = data.saved_amount  || '';
+                document.getElementById('sg-target-display').textContent = fmt(data.target_amount);
+                document.getElementById('sg-saved-display').textContent  = fmt(data.saved_amount);
+                document.getElementById('sg-remaining').textContent      = fmt(data.remaining_goal);
+                const pct = Math.min((data.saved_amount / data.target_amount) * 100, 100) || 0;
+                document.getElementById('sg-percent').textContent = pct.toFixed(0) + '%';
+                document.getElementById('sg-progress-fill').style.width = pct + '%';
+                document.getElementById('sg-meta').textContent = `Loaded from: ${new Date(data.created_at).toLocaleDateString()}`;
+                document.getElementById('sg-result').style.display = 'block';
+            } catch (err) { showError('sg', 'Could not reach the server.'); }
+        }
+
+        async function openLoadModal() {
+            await userReady;
+            const userId = localStorage.getItem('userId');
+            if (!userId) { showError('sg', 'Could not identify your account.'); return; }
+            document.getElementById('load-modal-error').style.display = 'none';
+            document.getElementById('load-modal-list').innerHTML =
+                '<div style="text-align:center; padding:20px; color:#aaa; font-size:13px;">Loading...</div>';
+            document.getElementById('load-modal').style.display = 'block';
+            fetchAllGoals(userId);
+        }
+
+        function closeLoadModal() { document.getElementById('load-modal').style.display = 'none'; }
+
+        async function fetchAllGoals(userId) {
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/all?userId=${userId}`);
+                const data = await res.json();
+                const list = document.getElementById('load-modal-list');
+                if (!res.ok) { list.innerHTML = `<div style="text-align:center; padding:20px; color:#aaa; font-size:13px;">${data.error || 'No goals found.'}</div>`; return; }
+                list.innerHTML = '';
+                data.forEach(goal => {
+                    const pct  = Math.min((goal.saved_amount / goal.target_amount) * 100, 100) || 0;
+                    const card = document.createElement('div');
+                    card.id = `goal-card-${goal.goal_id}`;
+                    card.style.cssText = 'background:#f9f9f9; border-radius:10px; padding:12px 14px; border:1px solid #eee;';
+                    card.innerHTML = `
+                        <div id="goal-view-${goal.goal_id}">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+                                <span style="font-weight:700; font-size:14px; color:#222;">${goal.goal_name}</span>
+                                <span style="font-size:11px; color:#aaa;">${new Date(goal.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <div style="font-size:12px; color:#555; margin-bottom:6px;">
+                                Saved <strong>${fmt(goal.saved_amount)}</strong> of <strong>${fmt(goal.target_amount)}</strong>
+                                &nbsp;·&nbsp; <span style="color:${goal.remaining_goal <= 0 ? '#4CAF50' : '#333'};">
+                                ${goal.remaining_goal <= 0 ? '✅ Done' : fmt(goal.remaining_goal) + ' left'}</span>
+                            </div>
+                            <div style="background:#eee; border-radius:99px; height:6px; margin-bottom:10px;">
+                                <div style="width:${pct}%; height:6px; background:#4CAF50; border-radius:99px;"></div>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button onclick="loadGoalFromModal(${goal.goal_id}, '${goal.goal_name}', ${goal.target_amount}, ${goal.saved_amount})"
+                                    style="flex:1; padding:7px; border-radius:7px; border:none; background:#4CAF50; color:white; font-size:12px; font-weight:600; cursor:pointer;">Load</button>
+                                <button onclick="startEditGoal(${goal.goal_id})"
+                                    style="flex:1; padding:7px; border-radius:7px; border:1px solid #4CAF50; background:white; color:#4CAF50; font-size:12px; font-weight:600; cursor:pointer;">Edit</button>
+                                <button onclick="deleteGoal(${goal.goal_id})"
+                                    style="flex:1; padding:7px; border-radius:7px; border:1px solid #F44336; background:white; color:#F44336; font-size:12px; font-weight:600; cursor:pointer;">Delete</button>
+                            </div>
+                        </div>
+                        <div id="goal-edit-${goal.goal_id}" style="display:none;">
+                            <div style="margin-bottom:8px;">
+                                <label style="font-size:12px; color:#555;">Goal Name</label>
+                                <input id="edit-name-${goal.goal_id}" type="text" value="${goal.goal_name}"
+                                    style="width:100%; padding:7px 10px; border:1px solid #ddd; border-radius:7px; font-size:13px; margin-top:3px; box-sizing:border-box;">
+                            </div>
+                            <div style="display:flex; gap:8px; margin-bottom:8px;">
+                                <div style="flex:1;">
+                                    <label style="font-size:12px; color:#555;">Target ($)</label>
+                                    <input id="edit-target-${goal.goal_id}" type="number" value="${goal.target_amount}" min="0"
+                                        style="width:100%; padding:7px 10px; border:1px solid #ddd; border-radius:7px; font-size:13px; margin-top:3px; box-sizing:border-box;">
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:12px; color:#555;">Saved ($)</label>
+                                    <input id="edit-saved-${goal.goal_id}" type="number" value="${goal.saved_amount}" min="0"
+                                        style="width:100%; padding:7px 10px; border:1px solid #ddd; border-radius:7px; font-size:13px; margin-top:3px; box-sizing:border-box;">
+                                </div>
+                            </div>
+                            <div id="edit-msg-${goal.goal_id}" style="display:none; font-size:12px; margin-bottom:6px;"></div>
+                            <div style="display:flex; gap:8px;">
+                                <button onclick="submitEditGoal(${goal.goal_id})"
+                                    style="flex:2; padding:7px; border-radius:7px; border:none; background:#4CAF50; color:white; font-size:12px; font-weight:600; cursor:pointer;">Save Changes</button>
+                                <button onclick="cancelEditGoal(${goal.goal_id})"
+                                    style="flex:1; padding:7px; border-radius:7px; border:1px solid #ccc; background:white; color:#888; font-size:12px; cursor:pointer;">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (err) {
+                document.getElementById('load-modal-list').innerHTML =
+                    '<div style="text-align:center; padding:20px; color:#aaa; font-size:13px;">Could not reach the server.</div>';
+            }
+        }
+
+        function loadGoalFromModal(goalId, name, target, saved) {
+            document.getElementById('sg-name').value   = name;
+            document.getElementById('sg-target').value = target;
+            document.getElementById('sg-saved').value  = saved;
+            closeLoadModal();
+            calculateSavings();
+        }
+
+        function startEditGoal(goalId) {
+            document.getElementById(`goal-view-${goalId}`).style.display = 'none';
+            document.getElementById(`goal-edit-${goalId}`).style.display = 'block';
+        }
+
+        function cancelEditGoal(goalId) {
+            document.getElementById(`goal-edit-${goalId}`).style.display = 'none';
+            document.getElementById(`goal-view-${goalId}`).style.display = 'block';
+            document.getElementById(`edit-msg-${goalId}`).style.display  = 'none';
+        }
+
+        async function submitEditGoal(goalId) {
+            const goalName     = document.getElementById(`edit-name-${goalId}`).value;
+            const targetAmount = parseFloat(document.getElementById(`edit-target-${goalId}`).value);
+            const savedAmount  = parseFloat(document.getElementById(`edit-saved-${goalId}`).value);
+            const msgEl = document.getElementById(`edit-msg-${goalId}`);
+            if (!goalName || isNaN(targetAmount) || isNaN(savedAmount)) {
+                msgEl.textContent = '⚠ All fields are required.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return;
+            }
+
+            // start of new code 25
+            // new — Edit guard: figure out how much MORE is being saved compared to before, and block if that would push the Amount You Have below zero for the logged-in user — 04/30/2026
+            const savedInput = document.getElementById(`edit-saved-${goalId}`);
+            const oldSaved   = parseFloat(savedInput.defaultValue) || 0;
+            const delta      = savedAmount - oldSaved;
+            const balance    = getStoredBalance();
+            if (delta > balance) {
+                msgEl.textContent = `⚠ You can't go over what you have. Adding ${fmt(delta)} more is over your balance of ${fmt(balance)}.`;
+                msgEl.style.color = '#F44336';
+                msgEl.style.display = 'block';
+                return;
+            }
+            // end of new code 25
+
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/update/${goalId}`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ goalName, targetAmount, savedAmount })
+                });
+                const data = await res.json();
+                if (!res.ok) { msgEl.textContent = '⚠ ' + (data.error || 'Could not update.'); msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return; }
+                msgEl.textContent = '✅ Saved!'; msgEl.style.color = '#4CAF50'; msgEl.style.display = 'block';
+
+                // start of new code 26
+                // new — Apply the saved-amount delta to the Amount You Have so editing a goal also adjusts the balance. Increasing saved subtracts, decreasing saved adds money back — 04/30/2026
+                if (delta !== 0) {
+                    adjustBalance(-delta);
+                    savedInput.defaultValue = String(savedAmount);
+                }
+                // end of new code 26
+
+                const userId = localStorage.getItem('userId');
+                setTimeout(() => fetchAllGoals(userId), 800);
+            } catch (err) { msgEl.textContent = '⚠ Could not reach the server.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; }
+        }
+
+        async function deleteGoal(goalId) {
+            if (!confirm('Delete this goal? This cannot be undone.')) return;
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/delete/${goalId}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) { alert('Could not delete goal.'); return; }
+                const card = document.getElementById(`goal-card-${goalId}`);
+                if (card) card.remove();
+            } catch (err) { alert('Could not reach the server.'); }
+        }
+
+        // GROUP BUDGET PLANNER
+
+        function grpShowError(msg) { const el = document.getElementById('grp-start-error'); el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
+        function grpClearError() { document.getElementById('grp-start-error').style.display = 'none'; }
+        function grpPlanError(msg) { const el = document.getElementById('grp-plan-error'); el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
+        function grpClearPlanError() { document.getElementById('grp-plan-error').style.display = 'none'; }
+
+        async function loadMyGroups() {
+            await userReady;
+            const userId = localStorage.getItem('userId');
+            if (!userId) return;
+            const list = document.getElementById('grp-my-groups-list');
+            list.innerHTML = '<div style="text-align:center; padding:10px; color:#aaa; font-size:12px;">Loading...</div>';
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/my-groups?userId=${userId}`);
+                const data = await res.json();
+                if (!res.ok || data.length === 0) { list.innerHTML = '<div style="text-align:center; padding:10px; color:#aaa; font-size:12px;">No groups yet</div>'; return; }
+                list.innerHTML = '';
+                data.forEach(g => {
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background:#f9f9f9; border-radius:8px; padding:10px 12px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;';
+                    card.innerHTML = `
+                        <div>
+                            <div style="font-weight:700; font-size:13px; color:#222;">${g.group_name}</div>
+                            <div style="font-size:11px; color:#aaa;">Code: ${g.invite_code}</div>
+                        </div>
+                        <button onclick="openSavedGroup(${g.group_id}, '${g.group_name}', '${g.invite_code}', ${g.created_by})"
+                            style="padding:6px 12px; border-radius:7px; border:none; background:#4CAF50; color:white; font-size:12px; font-weight:600; cursor:pointer;">Open</button>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (err) { list.innerHTML = '<div style="text-align:center; padding:10px; color:#aaa; font-size:12px;">Could not reach server</div>'; }
+        }
+
+        function openSavedGroup(groupId, groupName, inviteCode, createdBy) {
+            window.currentGroupId      = groupId;
+            window.currentGroupCreator = createdBy;
+            showGroupPlanView(groupName, inviteCode);
+            loadGroupPlan();
+        }
+
+        async function createGroupPlan() {
+            grpClearError();
+            await userReady;
+            const userId    = localStorage.getItem('userId');
+            const groupName = document.getElementById('grp-name').value.trim();
+            if (!userId)    return grpShowError('Could not identify your account. Please log out and log back in.');
+            if (!groupName) return grpShowError('Please enter a plan name.');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/create`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: parseInt(userId), groupName })
+                });
+                const data = await res.json();
+                if (!res.ok) return grpShowError(data.error || 'Could not create plan.');
+                window.currentGroupId      = data.groupId;
+                window.currentGroupCreator = parseInt(userId);
+                showGroupPlanView(data.groupName, data.inviteCode);
+            } catch (err) { grpShowError('Could not reach the server.'); }
+        }
+
+        async function joinGroupPlan() {
+            grpClearError();
+            await userReady;
+            const userId     = localStorage.getItem('userId');
+            const inviteCode = document.getElementById('grp-invite-input').value.trim().toUpperCase();
+            if (!userId)     return grpShowError('Could not identify your account. Please log out and log back in.');
+            if (!inviteCode) return grpShowError('Please enter an invite code.');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/join`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: parseInt(userId), inviteCode })
+                });
+                const data = await res.json();
+                if (!res.ok) return grpShowError(data.error || 'Could not join plan.');
+                window.currentGroupId      = data.groupId;
+                window.currentGroupCreator = data.createdBy;
+                showGroupPlanView(data.groupName, data.inviteCode);
+                loadGroupPlan();
+            } catch (err) { grpShowError('Could not reach the server.'); }
+        }
+
+        function showGroupPlanView(groupName, inviteCode) {
+            document.getElementById('grp-step-start').style.display = 'none';
+            document.getElementById('grp-step-plan').style.display  = 'block';
+            document.getElementById('grp-code-display').textContent = inviteCode;
+            document.getElementById('grp-plan-name').textContent    = '📋 ' + groupName;
+        }
+
+        function leaveGroupView() {
+            window.currentGroupId      = null;
+            window.currentGroupCreator = null;
+            document.getElementById('grp-step-plan').style.display   = 'none';
+            document.getElementById('grp-step-start').style.display  = 'block';
+            document.getElementById('grp-plan-result').style.display = 'none';
+            document.getElementById('grp-my-income').value    = '';
+            document.getElementById('grp-my-spending').value  = '';
+            document.getElementById('grp-name').value         = '';
+            document.getElementById('grp-invite-input').value = '';
+            document.getElementById('grp-goal-line').textContent = '';
+            loadMyGroups();
+        }
+
+        async function leaveGroup() {
+            if (!confirm('Leave this group? You will be removed from the plan.')) return;
+            await userReady;
+            const userId = localStorage.getItem('userId');
+            if (!userId || !window.currentGroupId) return;
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/leave`, {
+                    method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ groupId: window.currentGroupId, userId: parseInt(userId) })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || 'Could not leave group.'); return; }
+                leaveGroupView();
+            } catch (err) { alert('Could not reach the server.'); }
+        }
+
+        async function saveGroupGoal() {
+            grpClearPlanError();
+            const goalName   = document.getElementById('grp-goal-name-input').value.trim();
+            const goalAmount = parseFloat(document.getElementById('grp-goal-amount-input').value);
+            if (!goalName || isNaN(goalAmount)) return grpPlanError('Please enter a goal name and amount.');
+            if (!window.currentGroupId) return grpPlanError('No active group. Please open a group first.');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/set-goal`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ groupId: window.currentGroupId, goalName, groupGoal: goalAmount })
+                });
+                const data = await res.json();
+                if (!res.ok) return grpPlanError(data.error || 'Could not set goal.');
+                document.getElementById('grp-goal-line').textContent = `🎯 Goal: ${goalName} — ${fmt(goalAmount)}`;
+                const successEl = document.getElementById('grp-plan-error');
+                successEl.textContent = '✅ Goal saved!';
+                successEl.style.background = '#E8F5E9';
+                successEl.style.borderLeft = '4px solid #4CAF50';
+                successEl.style.color = '#4CAF50';
+                successEl.style.display = 'block';
+                setTimeout(() => { successEl.style.display = 'none'; }, 2000);
+                loadGroupPlan();
+            } catch (err) { grpPlanError('Could not reach the server.'); }
+        }
+
+        async function addContribution() {
+            const msgEl  = document.getElementById('grp-contrib-msg');
+            const amount = parseFloat(document.getElementById('grp-contrib-amount').value);
+            const note   = document.getElementById('grp-contrib-note').value.trim();
+            msgEl.style.display = 'none';
+            if (isNaN(amount) || amount <= 0) {
+                msgEl.textContent = '⚠ Enter a valid amount.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return;
+            }
+            if (!window.currentGroupId) { msgEl.textContent = '⚠ No active group.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return; }
+
+            // start of new code 24
+            // new — Block Add Contribution when the amount is bigger than the Amount You Have for the logged-in user — 04/30/2026
+            const currentBalance = getStoredBalance();
+            if (amount > currentBalance) {
+                msgEl.textContent = `⚠ You can't go over what you have. Contributing ${fmt(amount)} is more than your balance of ${fmt(currentBalance)}.`;
+                msgEl.style.color = '#F44336';
+                msgEl.style.display = 'block';
+                return;
+            }
+            // end of new code 24
+
+            await userReady;
+            const userId = localStorage.getItem('userId');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/contribute`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ groupId: window.currentGroupId, userId: parseInt(userId), amount, note })
+                });
+                const data = await res.json();
+                if (!res.ok) { msgEl.textContent = '⚠ ' + (data.error || 'Could not add.'); msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return; }
+                msgEl.textContent = `✅ Added ${fmt(amount)}! Your total: ${fmt(data.total)}`;
+                msgEl.style.color = '#4CAF50';
+                msgEl.style.display = 'block';
+
+                // start of new code 21
+                // new — Each group contribution subtracts that amount from the Amount You Have because the money was just sent to the group goal — 04/30/2026
+                adjustBalance(-amount);
+                // end of new code 21
+
+                document.getElementById('grp-contrib-amount').value = '';
+                document.getElementById('grp-contrib-note').value   = '';
+                loadGroupPlan();
+                loadContributions();
+            } catch (err) { msgEl.textContent = '⚠ Could not reach the server.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; }
+        }
+
+        async function loadContributions() {
+            if (!window.currentGroupId) return;
+            const list = document.getElementById('grp-contributions-list');
+            list.innerHTML = '<div style="text-align:center; padding:10px; color:#aaa; font-size:12px;">Loading...</div>';
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/contributions/${window.currentGroupId}`);
+                const data = await res.json();
+                if (!res.ok || data.length === 0) {
+                    list.innerHTML = '<div style="text-align:center; padding:10px; color:#aaa; font-size:12px;">No contributions yet</div>'; return;
+                }
+                list.innerHTML = '';
+                data.forEach(c => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'background:#f9f9f9; border-radius:7px; padding:8px 10px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;';
+                    row.innerHTML = `
+                        <div>
+                            <span style="font-weight:600; font-size:12px; color:#222;">${c.username}</span>
+                            <span style="font-size:12px; color:#4CAF50; font-weight:700; margin-left:6px;">+${fmt(c.amount)}</span>
+                            ${c.note ? `<span style="font-size:11px; color:#888; margin-left:4px;">· ${c.note}</span>` : ''}
+                            <!-- start of new code 8 -->
+                            <!-- new — toLocaleString shows date AND time so users know exactly when the money was added — 04/30/2026 -->
+                            <div style="font-size:10px; color:#aaa;">🕒 ${new Date(c.created_at).toLocaleString()}</div>
+                            <!-- end of new code 8 -->
+                        </div>
+                        <button onclick="deleteContribution(${c.contribution_id})"
+                            style="padding:3px 8px; border-radius:5px; border:1px solid #F44336;
+                                   background:white; color:#F44336; font-size:11px; cursor:pointer;">Delete</button>
+                    `;
+                    list.appendChild(row);
+                });
+            } catch (err) { list.innerHTML = '<div style="text-align:center; padding:10px; color:#aaa; font-size:12px;">Could not load.</div>'; }
+        }
+
+        async function deleteContribution(contributionId) {
+            if (!confirm('Delete this contribution?')) return;
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/contribution/${contributionId}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || 'Could not delete.'); return; }
+                loadGroupPlan();
+                loadContributions();
+            } catch (err) { alert('Could not reach the server.'); }
+        }
+
+        async function submitMyNumbers() {
+            grpClearPlanError();
+            await userReady;
+            const userId   = localStorage.getItem('userId');
+            const income   = parseFloat(document.getElementById('grp-my-income').value);
+            const spending = parseFloat(document.getElementById('grp-my-spending').value);
+            if (!userId)                return grpPlanError('Could not identify your account.');
+            if (!window.currentGroupId) return grpPlanError('No active group plan.');
+            if (isNaN(income) || isNaN(spending)) return grpPlanError('Please enter your income and spending.');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/update-member`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ groupId: window.currentGroupId, userId: parseInt(userId), income, spending })
+                });
+                const data = await res.json();
+                if (!res.ok) return grpPlanError(data.error || 'Could not save numbers.');
+                loadGroupPlan();
+            } catch (err) { grpPlanError('Could not reach the server.'); }
+        }
+
+        async function removeMember(targetUserId) {
+            if (!confirm('Remove this member from the group?')) return;
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/remove-member`, {
+                    method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ groupId: window.currentGroupId, userId: targetUserId })
+                });
+                const data = await res.json();
+                if (!res.ok) { alert(data.error || 'Could not remove member.'); return; }
+                loadGroupPlan();
+            } catch (err) { alert('Could not reach the server.'); }
+        }
+
+        async function loadGroupPlan() {
+            grpClearPlanError();
+            if (!window.currentGroupId) return;
+            const myUserId = parseInt(localStorage.getItem('userId'));
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/group/plan/${window.currentGroupId}`);
+                const data = await res.json();
+                if (!res.ok) return grpPlanError(data.error || 'Could not load plan.');
+
+                const goalLineEl = document.getElementById('grp-goal-line');
+                if (data.goal_name && data.group_goal > 0) {
+                    goalLineEl.textContent = `🎯 Goal: ${data.goal_name} — ${fmt(data.group_goal)}`;
+                    document.getElementById('grp-goal-name-input').value   = data.goal_name;
+                    document.getElementById('grp-goal-amount-input').value = data.group_goal;
+                } else {
+                    goalLineEl.textContent = '';
+                }
+
+                const membersList = document.getElementById('grp-members-list');
+                membersList.innerHTML = '';
+                let totalIncome = 0, totalSpending = 0, totalContributed = 0;
+
+                data.members.forEach(m => {
+                    totalIncome       += parseFloat(m.income   || 0);
+                    totalSpending     += parseFloat(m.spending || 0);
+                    totalContributed  += parseFloat(m.total_contributed || 0);
+                    const remaining    = (m.income || 0) - (m.spending || 0);
+                    const isCreator    = window.currentGroupCreator === myUserId;
+                    const isMe         = m.user_id === myUserId;
+
+                    const card = document.createElement('div');
+                    card.style.cssText = 'background:#f9f9f9; border-radius:8px; padding:10px 12px; border:1px solid #eee;';
+                    card.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span style="font-weight:700; font-size:13px; color:#222;">👤 ${m.username}${isMe ? ' (you)' : ''}</span>
+                            <div style="display:flex; align-items:center; gap:6px;">
+                                <span style="font-size:11px; color:${remaining < 0 ? '#F44336' : '#4CAF50'}; font-weight:600;">${fmt(remaining)} left</span>
+                                ${isCreator && !isMe ? `<button onclick="removeMember(${m.user_id})"
+                                    style="padding:3px 8px; border-radius:5px; border:1px solid #F44336; background:white; color:#F44336; font-size:11px; cursor:pointer;">Remove</button>` : ''}
+                            </div>
+                        </div>
+                        <div style="font-size:12px; color:#666;">
+                            Income: <strong>${fmt(m.income)}</strong> · Spending: <strong>${fmt(m.spending)}</strong>
+                            · Contributed: <strong style="color:#4CAF50;">${fmt(m.total_contributed)}</strong>
+                        </div>
+                    `;
+                    membersList.appendChild(card);
+                });
+
+                document.getElementById('grp-total-income').textContent   = fmt(totalIncome);
+                document.getElementById('grp-total-spending').textContent = fmt(totalSpending);
+                const remEl = document.getElementById('grp-total-remaining');
+                remEl.textContent = fmt(totalIncome - totalSpending);
+                remEl.style.color = (totalIncome - totalSpending) < 0 ? '#F44336' : '#4CAF50';
+
+                // Progress bar uses total contributions vs group goal
+                const goalProgress = document.getElementById('grp-goal-progress');
+                if (data.group_goal > 0) {
+                    const pct = Math.min((totalContributed / data.group_goal) * 100, 100);
+                    document.getElementById('grp-goal-label').textContent = `${fmt(totalContributed)} of ${fmt(data.group_goal)} contributed`;
+                    document.getElementById('grp-goal-pct').textContent   = pct.toFixed(0) + '%';
+                    document.getElementById('grp-goal-bar').style.width   = pct + '%';
+                    goalProgress.style.display = 'block';
+                } else {
+                    goalProgress.style.display = 'none';
+                }
+
+                document.getElementById('grp-plan-result').style.display = 'block';
+                loadContributions();
+            } catch (err) { grpPlanError('Could not reach the server.'); }
+        }
+    </script>
+</body>
+</html>
