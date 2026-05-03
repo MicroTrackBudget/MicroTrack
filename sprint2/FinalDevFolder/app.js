@@ -813,25 +813,27 @@ app.post('/verifyUser', (req, res) => {
     );
 });
 
-app.delete('/budget/:id', (req, res) => {
-    const { id } = req.params;
+app.delete('/budget/:id', async(req, res) => {
+  const { id } = req.params;
 
-    db.query(
-        'DELETE FROM Budget WHERE budget_id = ?',
-        [id],
-        (err, result) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: err.message });
-            }
-
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ error: "Budget not found" });
-            }
-
-            res.json({ success: true, message: "Budget deleted" });
-        }
+  try {
+    // Get category_id first
+    const [rows] = await dbAsync.query(
+      'SELECT category_id FROM Budget WHERE budget_id = ?', [id]
     );
+    if (rows.length === 0) return res.status(404).json({ error: "Budget not found" });
+    const categoryId = rows[0].category_id;
+
+    // Delete budget
+    await dbAsync.query('DELETE FROM Budget WHERE budget_id = ?', [id]);
+
+    // Delete the category too
+    await dbAsync.query('DELETE FROM SpendCategory WHERE category_id = ?', [categoryId]);
+
+    res.json({ success: true, message: "Budget deleted" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
 });
 
 /* ================= AUTO PRICE ALERT POLLING ================= */
