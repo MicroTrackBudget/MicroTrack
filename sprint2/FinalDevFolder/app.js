@@ -427,7 +427,7 @@ app.post("/budget/savings", async (req, res) => {
     // new  — Auto-save the calculation to BudgetHistory when a logged-in user is calculating, so it ties to their account without manual IDs — 04/30/2026
     if (userId == null) return res.json({ remainingBudget, calculatedAt, saved: false });
     try {
-      const [result] = await pool.query(
+      const [result] = await dbAsync.query(
         `INSERT INTO BudgetHistory (user_id, income, spending, remaining_budget) VALUES (?, ?, ?, ?)`,
         [userId, income, spending, remainingBudget]
       );
