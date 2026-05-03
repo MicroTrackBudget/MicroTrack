@@ -1,14 +1,23 @@
- * { 
+* { 
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html{
+    overflow-x: hidden;
+    max-width: 100%;
+
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
     background: #f5f5f5;
-    padding: 0px;
-    margin: 0px;
+    padding: 20px;
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+
 }
 
 .container {
@@ -49,6 +58,9 @@ h1 {
     padding: 15px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     border: 8px solid #333;
+    position: relative;
+    z-index: 10;
+    
 }
 
 .screen {
@@ -59,8 +71,7 @@ h1 {
     flex-direction: column;
     background: #fafafa;
     border-radius: 15px;
-    overflow: hidden;
-    min-height: 650px;
+    
 }
 
 .status-bar {
@@ -109,11 +120,6 @@ h1 {
 
 .nav-item.active {
     color: #fff;
-}
-
-.nav-icon:focus {
-    outline: 2px solid #4CAF50;
-    outline-offset: 2px;
 }
 
 .nav-icon {
@@ -446,17 +452,27 @@ h1 {
   
 /*Index, Createaccount, Passreset*/
 .login-container {
+    max-width: 1400px;
+    margin: 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     position: relative;
+    overflow: hidden;
+    
+}
+body.auth-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 0;
     overflow: hidden;
 }
         
 .confetti {
     position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
@@ -485,7 +501,7 @@ h1 {
         
 .logo-container {
     text-align: center;
-    margin-bottom: 30px;
+    overflow: hidden;
 }
         
 .logo {
@@ -528,10 +544,6 @@ h1 {
     font-size: 14px;
 }
         
-.phone-frame {
-    z-index: 10;
-    position: relative;
-}
         
 .password-strength {
     height: 4px;
@@ -655,4 +667,48 @@ h1 {
     padding:2px 6px;
     border-radius:6px;
     margin-left:6px;
+}
+/* Pie chart */
+.pie-chart-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 8px auto 0;
+    width: 140px;
+    height: 140px;
+}
+ 
+.pie-center-text {
+    position: absolute;
+    text-align: center;
+    pointer-events: none;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+}
+ 
+.pie-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px 12px;
+    margin-top: 10px;
+    padding: 0 5px;
+}
+ 
+.pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: #666;
+}
+ 
+.pie-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
 }

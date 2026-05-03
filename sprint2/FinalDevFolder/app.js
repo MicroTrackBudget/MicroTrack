@@ -418,19 +418,26 @@ app.post("/budget/savings", async (req, res) => {
       return res.status(400).json({ error: "Could not complete calculation." });
   
     const remainingBudget = income - spending;
-    if (userId == null || categoryId == null) return res.json({ remainingBudget });
-  
+    // start of new code 1
+    // new — server timestamp for when the calculation was done — 04/27/2026
+    const calculatedAt = new Date().toISOString();
+    // end of new code 1
+
+    // start of new code 9
+    // new  — Auto-save the calculation to BudgetHistory when a logged-in user is calculating, so it ties to their account without manual IDs — 04/30/2026
+    if (userId == null) return res.json({ remainingBudget, calculatedAt, saved: false });
     try {
-      const [rows] = await dbAsync.query(
-        `SELECT monthly_limit, weekly_limit FROM Budget WHERE user_id = ? AND category_id = ?`,
-        [userId, categoryId]
+      const [result] = await pool.query(
+        `INSERT INTO BudgetHistory (user_id, income, spending, remaining_budget) VALUES (?, ?, ?, ?)`,
+        [userId, income, spending, remainingBudget]
       );
-      if (rows.length === 0) return res.json({ remainingBudget });
-      return res.json({ remainingBudget, monthly_limit: rows[0].monthly_limit, weekly_limit: rows[0].weekly_limit });
+      return res.json({ remainingBudget, calculatedAt, saved: true, budgetId: result.insertId });
     } catch (err) {
-      return res.json({ remainingBudget });
+      return res.json({ remainingBudget, calculatedAt, saved: false });
     }
+    // end of new code 9
   });
+
 // User sync
 app.post('/api/user/sync', async (req, res) => {
     const { email, username } = req.body;

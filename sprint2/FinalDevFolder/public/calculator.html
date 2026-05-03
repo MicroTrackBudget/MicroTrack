@@ -52,6 +52,14 @@
                             <div class="budget-header" style="margin-bottom:15px;">
                                 <span>💰 Budget Calculator</span>
                             </div>
+
+                            <!-- start of new code 2 -->
+                            <!-- new — Amount You Have live balance box that updates with income and spending inputs — 04/27/2026 -->
+                            <div id="bc-balance-box" style="background:#E8F5E9; border-radius:10px; padding:12px; margin-bottom:15px; text-align:center;">
+                                <div style="font-size:12px; color:#555; margin-bottom:4px;">💵 Amount You Have</div>
+                                <div id="bc-balance" style="font-size:24px; font-weight:800; color:#4CAF50;">$0.00</div>
+                            </div>
+                            <!-- end of new code 2 -->
                             <div class="form-group">
                                 <label class="form-label">Income ($)</label>
                                 <input type="number" class="form-input" id="bc-income" placeholder="e.g. 2000" min="0">
@@ -60,14 +68,20 @@
                                 <label class="form-label">Spending ($)</label>
                                 <input type="number" class="form-input" id="bc-spending" placeholder="e.g. 800" min="0">
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">User ID <span style="color:#aaa; font-size:11px;">(optional)</span></label>
-                                <input type="number" class="form-input" id="bc-userId" placeholder="e.g. 1" min="1">
+
+                            <!-- start of new code 27 -->
+                            <!-- new — Replace vs Add toggle so the user picks how Calculate affects the Amount You Have — 04/30/2026 -->
+                            <div style="background:#f9f9f9; border-radius:8px; padding:10px 12px; margin-bottom:12px; border:1px solid #eee;">
+                                <div style="font-size:12px; color:#555; margin-bottom:6px; font-weight:600;">When you Calculate:</div>
+                                <label style="display:inline-block; margin-right:16px; font-size:13px; cursor:pointer; color:#333;">
+                                    <input type="radio" name="bc-mode" value="replace" checked> Replace balance
+                                </label>
+                                <label style="display:inline-block; font-size:13px; cursor:pointer; color:#333;">
+                                    <input type="radio" name="bc-mode" value="add"> Add to balance
+                                </label>
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Category ID <span style="color:#aaa; font-size:11px;">(optional)</span></label>
-                                <input type="number" class="form-input" id="bc-categoryId" placeholder="e.g. 1" min="1">
-                            </div>
+                            <!-- end of new code 27 -->
+                            
                             <button class="btn-primary" onclick="calculateBudget()">Calculate</button>
                             <div id="bc-error" style="display:none; margin-top:12px; background:#FFEBEE;
                                 border-left:4px solid #F44336; padding:10px 12px; border-radius:6px;
@@ -87,6 +101,10 @@
                                         <span id="bc-remaining">$0.00</span>
                                     </div>
                                     <div id="bc-limits" style="margin-top:10px; font-size:12px; color:#666;"></div>
+                                    <!-- start of new code 5 -->
+                                    <!-- new — Timestamp line that shows when the budget was calculated — 04/29/2026 -->
+                                    <div id="bc-time" style="margin-top:8px; font-size:11px; color:#888;"></div>
+                                    <!-- end of new code 5 -->
                                 </div>
                             </div>
                         </div>
@@ -98,6 +116,15 @@
                             <div class="budget-header" style="margin-bottom:15px;">
                                 <span>🎯 Savings Goal</span>
                             </div>
+
+                            <!-- start of new code 15 -->
+                            <!-- new — Amount You Have mirror in Savings tab so the balance is visible from any tab — 04/30/2026 -->
+                            <div style="background:#E8F5E9; border-radius:10px; padding:12px; margin-bottom:15px; text-align:center;">
+                                <div style="font-size:12px; color:#555; margin-bottom:4px;">💵 Amount You Have</div>
+                                <div id="bc-balance-savings" style="font-size:24px; font-weight:800; color:#4CAF50;">$0.00</div>
+                            </div>
+                            <!-- end of new code 15 -->
+                            
                             <div class="form-group">
                                 <label class="form-label">Goal Name</label>
                                 <input type="text" class="form-input" id="sg-name" placeholder="e.g. New Laptop">
@@ -157,6 +184,14 @@
                             <div class="budget-header" style="margin-bottom:15px;">
                                 <span>👥 Group Budget Planner</span>
                             </div>
+
+                            <!-- start of new code 16 -->
+                            <!-- new — Amount You Have mirror in Group tab so the balance is visible from any tab — 04/30/2026 -->
+                            <div style="background:#E8F5E9; border-radius:10px; padding:12px; margin-bottom:15px; text-align:center;">
+                                <div style="font-size:12px; color:#555; margin-bottom:4px;">💵 Amount You Have</div>
+                                <div id="bc-balance-group" style="font-size:24px; font-weight:800; color:#4CAF50;">$0.00</div>
+                            </div>
+                            <!-- end of new code 16 -->
 
                             <!-- Step 1: Create or Join -->
                             <div id="grp-step-start">
@@ -419,19 +454,72 @@
             if (el) el.style.display = 'none';
         }
 
-        // ========================
         // BUDGET CALCULATOR
-        // ========================
+
+        // start of new code 28
+        // new — Per-user storage key. Each logged-in account gets its own Amount You Have so balances are not shared across users on the same browser — 04/30/2026
+        function getBalanceKey() {
+            const uid = localStorage.getItem('userId');
+            return uid ? 'amount_you_have_' + uid : null;
+        }
+        function getStoredBalance() {
+            const key = getBalanceKey();
+            return key ? (parseFloat(localStorage.getItem(key)) || 0) : 0;
+        }
+        // end of new code 28
+
+        // start of new code 6
+        // new — Repaints the Amount You Have boxes from the stored balance for the logged-in user — 04/30/2026
+        function updateLiveBalance() {
+            const balance = getStoredBalance();
+            const text  = fmt(balance);
+            const color = balance < 0 ? '#F44336' : '#4CAF50';
+            ['bc-balance', 'bc-balance-savings', 'bc-balance-group'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.textContent = text; el.style.color = color; }
+            });
+        }
+        // end of new code 6
+
+        // start of new code 13
+        // new — Helpers the buttons call: setBalance overwrites, adjustBalance adds or subtracts. Both write to the per-user key — 04/30/2026
+        function setBalance(value) {
+            const key = getBalanceKey();
+            if (!key) return;
+            localStorage.setItem(key, String(value));
+            updateLiveBalance();
+        }
+        function adjustBalance(delta) {
+            setBalance(getStoredBalance() + delta);
+        }
+        // end of new code 13
+
+        // start of new code 14
+        // new — On page load paint twice: once right away (might be 0 if userId not synced yet) then again once userReady resolves so the balance is for the right account — 04/30/2026
+        updateLiveBalance();
+        userReady.then(() => updateLiveBalance());
+        // end of new code 14
 
         async function calculateBudget() {
             clearError('bc');
             const income     = parseFloat(document.getElementById('bc-income').value);
             const spending   = parseFloat(document.getElementById('bc-spending').value);
-            const userId     = document.getElementById('bc-userId').value;
-            const categoryId = document.getElementById('bc-categoryId').value;
+
+            // start of new code 22
+            // new — Block Calculate when spending is more than income because that would push the Amount You Have below zero — 04/30/2026
+            if (!isNaN(income) && !isNaN(spending) && spending > income) {
+                return showError('bc', `You can't go over what you have. Spending of ${fmt(spending)} is more than income of ${fmt(income)} by ${fmt(spending - income)}.`);
+            }
+            // end of new code 22
+
+            // start of new code 11
+            // new — Pull userId from localStorage so the calculation auto-saves to the logged-in account, no manual ID typing — 04/30/2026
+            await userReady;
+            const userId = localStorage.getItem('userId');
+            // end of new code 11
+            
             const body = { income, spending };
-            if (userId)     body.userId     = parseInt(userId);
-            if (categoryId) body.categoryId = parseInt(categoryId);
+            if (userId) body.userId = parseInt(userId);
             try {
                 const res  = await fetch(`${BUDGET_URL}/budget/savings`, {
                     method: 'POST',
@@ -445,10 +533,35 @@
                 const remEl = document.getElementById('bc-remaining');
                 remEl.textContent = fmt(data.remainingBudget);
                 remEl.style.color = data.remainingBudget < 0 ? '#F44336' : '#4CAF50';
-                let limitsText = '';
-                if (data.monthly_limit) limitsText += `Monthly limit: ${fmt(data.monthly_limit)}  `;
-                if (data.weekly_limit)  limitsText += `Weekly limit: ${fmt(data.weekly_limit)}`;
-                document.getElementById('bc-limits').textContent = limitsText;
+
+                // start of new code 12
+                // new — Show a Saved-to-account indicator when the backend confirms it tied the calculation to the user — 04/30/2026
+                const limitsEl = document.getElementById('bc-limits');
+                if (data.saved && data.budgetId) {
+                    limitsEl.textContent = `✅ Saved to your account · ID #${data.budgetId}`;
+                    limitsEl.style.color = '#4CAF50';
+                } else if (!userId) {
+                    limitsEl.textContent = '⚠ Not saved — please log in again to save to your account.';
+                    limitsEl.style.color = '#F44336';
+                } else {
+                    limitsEl.textContent = '';
+                }
+                // end of new code 12
+
+                // start of new code 7
+                // new — Print the time the budget was calculated, falling back to client time if the server did not send one — 04/30/2026
+                const ts = data.calculatedAt ? new Date(data.calculatedAt) : new Date();
+                document.getElementById('bc-time').textContent = '🕒 Calculated at: ' + ts.toLocaleString();
+                // end of new code 7
+
+                // start of new code 19
+                // new — Calculate uses the toggle to decide. Replace overwrites the Amount You Have. Add stacks on top of the current balance — 04/30/2026
+                const bcDelta = data.remainingBudget != null ? data.remainingBudget : (income - spending);
+                const bcMode  = (document.querySelector('input[name="bc-mode"]:checked') || {}).value || 'replace';
+                if (bcMode === 'add') adjustBalance(bcDelta);
+                else                  setBalance(bcDelta);
+                // end of new code 19
+
                 document.getElementById('bc-result').style.display = 'block';
             } catch (err) {
                 showError('bc', 'Could not reach the server.');
@@ -496,6 +609,15 @@
             const savedAmount  = parseFloat(document.getElementById('sg-saved').value);
             if (!userId)   return showError('sg', 'Could not identify your account. Please log out and log back in.');
             if (!goalName) return showError('sg', 'Goal Name is required to save.');
+
+            // start of new code 23
+            // new — Block Save when the savedAmount is bigger than the Amount You Have for the logged-in user — 04/30/2026
+            const currentBalance = getStoredBalance();
+            if (!isNaN(savedAmount) && savedAmount > currentBalance) {
+                return showError('sg', `You can't go over what you have. Saving ${fmt(savedAmount)} is more than your balance of ${fmt(currentBalance)}.`);
+            }
+            // end of new code 23
+
             try {
                 const checkRes  = await fetch(`${SAVINGS_URL}/api/savings/check-name?userId=${userId}&goalName=${encodeURIComponent(goalName)}`);
                 const checkData = await checkRes.json();
@@ -519,6 +641,34 @@
                 const data = await res.json();
                 if (!res.ok) return showError('sg', data.error || 'Could not save.');
                 document.getElementById('sg-meta').textContent = `✅ Saved! Goal ID: ${data.goalId}`;
+                document.getElementById('sg-result').style.display = 'block';
+
+                // start of new code 20
+                // new — Saving a savings goal subtracts the savedAmount from the Amount You Have because that money is now allocated — 04/30/2026
+                if (!isNaN(savedAmount) && savedAmount > 0) adjustBalance(-savedAmount);
+                // end of new code 20
+            } catch (err) { showError('sg', 'Could not reach the server.'); }
+        }
+
+        async function loadLatest() {
+            clearError('sg');
+            await userReady;
+            const userId = localStorage.getItem('userId');
+            if (!userId) return showError('sg', 'Could not identify your account.');
+            try {
+                const res  = await fetch(`${SAVINGS_URL}/api/savings/latest?userId=${userId}`);
+                const data = await res.json();
+                if (!res.ok) return showError('sg', data.error || 'No saved goals found.');
+                document.getElementById('sg-name').value   = data.goal_name    || '';
+                document.getElementById('sg-target').value = data.target_amount || '';
+                document.getElementById('sg-saved').value  = data.saved_amount  || '';
+                document.getElementById('sg-target-display').textContent = fmt(data.target_amount);
+                document.getElementById('sg-saved-display').textContent  = fmt(data.saved_amount);
+                document.getElementById('sg-remaining').textContent      = fmt(data.remaining_goal);
+                const pct = Math.min((data.saved_amount / data.target_amount) * 100, 100) || 0;
+                document.getElementById('sg-percent').textContent = pct.toFixed(0) + '%';
+                document.getElementById('sg-progress-fill').style.width = pct + '%';
+                document.getElementById('sg-meta').textContent = `Loaded from: ${new Date(data.created_at).toLocaleDateString()}`;
                 document.getElementById('sg-result').style.display = 'block';
             } catch (err) { showError('sg', 'Could not reach the server.'); }
         }
@@ -633,6 +783,21 @@
             if (!goalName || isNaN(targetAmount) || isNaN(savedAmount)) {
                 msgEl.textContent = '⚠ All fields are required.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return;
             }
+
+            // start of new code 25
+            // new — Edit guard: figure out how much MORE is being saved compared to before, and block if that would push the Amount You Have below zero for the logged-in user — 04/30/2026
+            const savedInput = document.getElementById(`edit-saved-${goalId}`);
+            const oldSaved   = parseFloat(savedInput.defaultValue) || 0;
+            const delta      = savedAmount - oldSaved;
+            const balance    = getStoredBalance();
+            if (delta > balance) {
+                msgEl.textContent = `⚠ You can't go over what you have. Adding ${fmt(delta)} more is over your balance of ${fmt(balance)}.`;
+                msgEl.style.color = '#F44336';
+                msgEl.style.display = 'block';
+                return;
+            }
+            // end of new code 25
+
             try {
                 const res  = await fetch(`${SAVINGS_URL}/api/savings/update/${goalId}`, {
                     method: 'PUT', headers: { 'Content-Type': 'application/json' },
@@ -641,6 +806,15 @@
                 const data = await res.json();
                 if (!res.ok) { msgEl.textContent = '⚠ ' + (data.error || 'Could not update.'); msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return; }
                 msgEl.textContent = '✅ Saved!'; msgEl.style.color = '#4CAF50'; msgEl.style.display = 'block';
+
+                // start of new code 26
+                // new — Apply the saved-amount delta to the Amount You Have so editing a goal also adjusts the balance. Increasing saved subtracts, decreasing saved adds money back — 04/30/2026
+                if (delta !== 0) {
+                    adjustBalance(-delta);
+                    savedInput.defaultValue = String(savedAmount);
+                }
+                // end of new code 26
+
                 const userId = document.getElementById('sg-userId').value || localStorage.getItem('userId');
                 setTimeout(() => fetchAllGoals(userId), 800);
             } catch (err) { msgEl.textContent = '⚠ Could not reach the server.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; }
@@ -657,10 +831,7 @@
             } catch (err) { alert('Could not reach the server.'); }
         }
 
-        // ========================
         // GROUP BUDGET PLANNER
-        // ========================
-
         function grpShowError(msg)   { const el = document.getElementById('grp-start-error'); el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
         function grpClearError()     { document.getElementById('grp-start-error').style.display = 'none'; }
         function grpPlanError(msg)   { const el = document.getElementById('grp-plan-error'); el.textContent = '⚠ ' + msg; el.style.display = 'block'; }
@@ -792,6 +963,12 @@
                 const data = await res.json();
                 if (!res.ok) return grpPlanError(data.error || 'Could not set goal.');
                 document.getElementById('grp-goal-line').textContent = `🎯 Goal: ${goalName} — ${fmt(goalAmount)}`;
+                const successEl = document.getElementById('grp-plan-error');
+                successEl.textContent = '✅ Goal saved!';
+                successEl.style.background = '#E8F5E9';
+                successEl.style.borderLeft = '4px solid #4CAF50';
+                successEl.style.color = '#4CAF50';
+                successEl.style.display = 'block';
                 loadGroupPlan();
             } catch (err) { grpPlanError('Could not reach the server.'); }
         }
@@ -803,6 +980,18 @@
             msgEl.style.display = 'none';
             if (isNaN(amount) || amount <= 0) { msgEl.textContent = '⚠ Enter a valid amount.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return; }
             if (!window.currentGroupId) { msgEl.textContent = '⚠ No active group.'; msgEl.style.color = '#F44336'; msgEl.style.display = 'block'; return; }
+            
+            // start of new code 24
+            // new — Block Add Contribution when the amount is bigger than the Amount You Have for the logged-in user — 04/30/2026
+            const currentBalance = getStoredBalance();
+            if (amount > currentBalance) {
+                msgEl.textContent = `⚠ You can't go over what you have. Contributing ${fmt(amount)} is more than your balance of ${fmt(currentBalance)}.`;
+                msgEl.style.color = '#F44336';
+                msgEl.style.display = 'block';
+                return;
+            }
+            // end of new code 24
+            
             await userReady;
             const userId = localStorage.getItem('userId');
             try {
@@ -815,6 +1004,12 @@
                 msgEl.textContent = `✅ Added ${fmt(amount)}! Your total: ${fmt(data.total)}`;
                 msgEl.style.color = '#4CAF50';
                 msgEl.style.display = 'block';
+
+                // start of new code 21
+                // new — Each group contribution subtracts that amount from the Amount You Have because the money was just sent to the group goal — 04/30/2026
+                adjustBalance(-amount);
+                // end of new code 21
+
                 document.getElementById('grp-contrib-amount').value = '';
                 document.getElementById('grp-contrib-note').value   = '';
                 loadGroupPlan();
@@ -949,6 +1144,7 @@
                 remEl.textContent = fmt(totalIncome - totalSpending);
                 remEl.style.color = (totalIncome - totalSpending) < 0 ? '#F44336' : '#4CAF50';
 
+                // Progress bar uses total contributions vs group goal
                 const goalProgress = document.getElementById('grp-goal-progress');
                 if (data.group_goal > 0) {
                     const pct = Math.min((totalContributed / data.group_goal) * 100, 100);
