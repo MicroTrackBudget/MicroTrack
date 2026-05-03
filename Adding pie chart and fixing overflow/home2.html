@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BudgetBud - Home</title>
+    <link rel="stylesheet" href="appstyles.css">
+    <script type="text/javascript">
+window.addEventListener('load',function(){function loadHeyy(){window.heyySettings={widgetId:"pllhkLtTB3weRcr2",baseUrl:"https://live-chat.heyy.io"};var s=document.createElement('script');s.type='text/javascript';s.async=true;s.src='https://assets.heyy.io/live-chat/live-chat.js';document.head.appendChild(s);}if('requestIdleCallback'in window){requestIdleCallback(loadHeyy);}else{setTimeout(loadHeyy,3000);}});
+</script>
+</head>
+<body>
+    <div class="container">
+        <div class="phone-frame">
+            <div class="screen">
+                <div class="status-bar">
+                    <span id="currentTime"></span>
+                <div class="menu-wrapper">
+        <span class="menu-dots" onclick="toggleMenu()">●●●</span>
+        <div class="menu-dropdown" id="menuDropdown">
+            <div onclick="logout()">Logout</div>
+        </div>
+    </div>  
+                </div>
+                
+                <div class="header">
+                    BudgetBud
+                </div>
+              
+                <div class="content">
+                    <div class="summary-box">
+                        <div class="pie-chart-wrapper">
+                            <canvas id="budgetPieChart" width="140" height="140"
+                                role="img" aria-label="Budget spending breakdown by category">
+                                No budget data available.
+                            </canvas>
+                            <div class="pie-center-text">
+                                <div class="summary-value" id="totalRemaining">$0.00</div>
+                                <div class="summary-label">remaining</div>
+                            </div>
+                        </div>
+                        <div class="summary-label" style="margin-top: 10px;">of <span id="totalBudget">$0.00</span> monthly budget</div>
+                        <div id="pieChartLegend" class="pie-legend"></div>
+                    </div>
+                    
+                    <div class="alert-box" id="alertBox" style="display: none;">
+                        ⚠️ <span id="alertMessage"></span>
+                    </div>
+                    
+                    <div class="section-title">Active Budgets</div>
+                    
+                    <div id="budgetList">
+                        <div style="text-align: center; padding: 40px 20px; color: #999;">
+                            <p style="font-size: 48px; margin-bottom: 10px;">📊</p>
+                            <p>No budgets yet!</p>
+                            <p style="font-size: 13px; margin-top: 10px;">Click on "Budgets" below to create your first budget</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-bar">
+                    <div class="nav-item active">
+                        <a href="home.html" class="nav-icon">Home</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="addpurchase.html" class="nav-icon">Add</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="budget.html" class="nav-icon">Budgets</a>
+                    </div>
+                    <div class="nav-item">
+                        <a href="pricetracker.html" class="nav-icon">Prices</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+
+    // Update time
+        function updateTime() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${hours}:${minutes}`;
+        }
+        updateTime();
+        setInterval(updateTime, 60000);
+
+    function toggleMenu() {
+        const menu = document.getElementById('menuDropdown');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function logout() {
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'index.html';
+    }
+
+    // Close when clicking outside
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('menuDropdown');
+        if (!e.target.closest('.menu-wrapper') && menu) {
+            menu.style.display = 'none';
+        }
+    });
+    
+    // Check if user is logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+    drawPieChart([]);   
+    const PIE_COLORS = [
+        '#4CAF50','#2196F3','#FF9800','#9C27B0',
+        '#F44336','#00BCD4','#FF5722','#607D8B'
+    ];
+
+    function drawPieChart(budgets) {
+        const canvas = document.getElementById('budgetPieChart');
+        const ctx = canvas.getContext('2d');
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const outerR = 62;
+        const innerR = 42;  // doughnut hole size
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Empty state — plain grey ring
+        if (!budgets || budgets.length === 0) {
+            ctx.beginPath();
+            ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+            ctx.arc(cx, cy, innerR, 0, Math.PI * 2, true);
+            ctx.fillStyle = '#e0e0e0';
+            ctx.fill();
+            return;
+        }
+
+        const total = budgets.reduce((sum, b) => sum + parseFloat(b.monthly_limit), 0);
+        let startAngle = -Math.PI / 2; // start from top
+
+        budgets.forEach((budget, i) => {
+            const slice = (parseFloat(budget.monthly_limit) / total) * Math.PI * 2;
+            const endAngle = startAngle + slice;
+            const color = PIE_COLORS[i % PIE_COLORS.length];
+
+            // Outer arc forward, inner arc backward = doughnut slice
+            ctx.beginPath();
+            ctx.moveTo(cx + innerR * Math.cos(startAngle), cy + innerR * Math.sin(startAngle));
+            ctx.arc(cx, cy, outerR, startAngle, endAngle);
+            ctx.arc(cx, cy, innerR, endAngle, startAngle, true);
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            // Thin white gap between slices
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            startAngle = endAngle;
+        });
+    }
+
+    function renderLegend(budgets) {
+        const legendEl = document.getElementById('pieChartLegend');
+        if (!budgets || budgets.length === 0) {
+            legendEl.innerHTML = '';
+            return;
+        }
+        legendEl.innerHTML = budgets.map((b, i) =>
+            `<span class="pie-legend-item">
+                <span class="pie-legend-dot" style="background:${PIE_COLORS[i % PIE_COLORS.length]}"></span>
+                ${b.category_name}
+            </span>`
+        ).join('');
+    }
+
+    // Animate the pie drawing in
+    function animatePie(budgets) {
+        if (!budgets || budgets.length === 0) {
+            drawPieChart([]);
+            renderLegend([]);
+            return;
+        }
+
+        const canvas = document.getElementById('budgetPieChart');
+        const ctx = canvas.getContext('2d');
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const outerR = 62;
+        const innerR = 42;
+        const total = budgets.reduce((sum, b) => sum + parseFloat(b.monthly_limit), 0);
+
+        let progress = 0;
+        const duration = 600;
+        const startTime = performance.now();
+
+        function frame(now) {
+            progress = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            let startAngle = -Math.PI / 2;
+            const totalAngle = Math.PI * 2 * eased;
+            let drawn = 0;
+
+            for (let i = 0; i < budgets.length; i++) {
+                const slice = (parseFloat(budgets[i].monthly_limit) / total) * Math.PI * 2;
+                const draw = Math.min(slice, totalAngle - drawn);
+                if (draw <= 0) break;
+
+                const endAngle = startAngle + draw;
+                const color = PIE_COLORS[i % PIE_COLORS.length];
+
+                ctx.beginPath();
+                ctx.moveTo(cx + innerR * Math.cos(startAngle), cy + innerR * Math.sin(startAngle));
+                ctx.arc(cx, cy, outerR, startAngle, endAngle);
+                ctx.arc(cx, cy, innerR, endAngle, startAngle, true);
+                ctx.closePath();
+                ctx.fillStyle = color;
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                drawn += draw;
+                startAngle = endAngle;
+                if (drawn >= totalAngle) break;
+            }
+
+            if (progress < 1) requestAnimationFrame(frame);
+        }
+
+        requestAnimationFrame(frame);
+        renderLegend(budgets);
+    }
+
+    // Load budgets 
+    async function loadBudgets() {
+        const userId = parseInt(localStorage.getItem("userId"));
+        if (!userId) {
+            drawPieChart([]);
+            return;
+        }
+
+        const response = await fetch(`/budgets/${userId}`);
+        const budgets = await response.json();
+
+        const budgetList = document.getElementById('budgetList');
+
+        if (budgets.length === 0) {
+            drawPieChart([]);
+            renderLegend([]);
+            return;
+        }
+
+        budgetList.innerHTML = '';
+
+        let totalBudgetAmount = 0;
+        let totalSpent = 0;
+        let alerts = [];
+
+        budgets.forEach(budget => {
+            const spent = parseFloat(budget.spent);
+            const limit = parseFloat(budget.monthly_limit);
+
+            const percentage = (spent / limit) * 100;
+            const remaining = (limit - spent).toFixed(2);
+
+            totalBudgetAmount += limit;
+            totalSpent += spent;
+
+            if (percentage >= 85) {
+                alerts.push(`${budget.category_name} budget at ${percentage.toFixed(0)}%`);
+            }
+
+            let progressClass = '';
+            if (percentage >= 100) progressClass = 'danger';
+            else if (percentage >= 75) progressClass = 'warning';
+
+            const budgetCard = `
+                <div class="budget-card">
+                    <div class="budget-header">
+                        <span>${budget.category_name}</span>
+                        <span>$${spent.toFixed(2)} / $${limit}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${progressClass}" style="width: ${Math.min(percentage, 100)}%;"></div>
+                    </div>
+                    <div class="budget-info">
+                        <span>${percentage.toFixed(0)}% used</span>
+                        <span>$${remaining} left</span>
+                    </div>
+                </div>
+            `;
+
+            budgetList.innerHTML += budgetCard;
+        });
+
+        const totalRemaining = totalBudgetAmount - totalSpent;
+
+        document.getElementById('totalRemaining').textContent = `$${totalRemaining.toFixed(2)}`;
+        document.getElementById('totalBudget').textContent = `$${totalBudgetAmount.toFixed(2)}`;
+
+        if (alerts.length > 0) {
+            document.getElementById('alertBox').style.display = 'block';
+            document.getElementById('alertMessage').textContent = alerts.join(' · ');
+        }
+
+        // Draw the pie chart with animation
+        animatePie(budgets);
+    }
+        
+    // Load budgets on page load
+    loadBudgets();
+    </script>
+</body>
+</html>
